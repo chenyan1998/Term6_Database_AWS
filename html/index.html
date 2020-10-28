@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Grid Component</title>
+    <script src="https://unpkg.com/vue"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- component template -->
+    <script type="text/x-template" id="grid-template">
+      <table>
+        <thead>
+          <tr>
+            <th v-for="key in columns"
+              @click="sortBy(key)"
+              :class="{ active: sortKey == key }">
+              {{ key | capitalize }}
+              <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="entry in filteredHeroes">
+            <td v-for="key in columns">
+              {{entry[key]}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </script>
+  </head>
+  <body>
+    <!-- demo root element -->
+    <div id="demo">
+        <input v-model="asin" placeholder="asin">
+        <input v-model="reviewerID" placeholder="reviewerID">
+        <button v-on:click="getReview">Query</button>
+      <demo-grid
+        :heroes="gridData"
+        :columns="gridColumns"
+        :filter-key="searchQuery"
+      >
+      </demo-grid>
+    </div>
+
+    <script src="demo.js"></script>
+  </body>
+</html>
