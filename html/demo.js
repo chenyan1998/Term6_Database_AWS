@@ -1,79 +1,65 @@
-var comp = Vue.component("demo-grid", {
-  template: "#grid-template",
-  props: {
-    heroes: Array,
-    columns: Array,
-    filterKey: String,
-  },
-  data: function () {
-    var sortOrders = {};
-    this.columns.forEach(function (key) {
-      sortOrders[key] = 1;
-    });
-    return {
-      sortKey: "",
-      sortOrders: sortOrders,
-    };
-  },
-  computed: {
-    filteredHeroes: function () {
-      var sortKey = this.sortKey;
-      var filterKey = this.filterKey && this.filterKey.toLowerCase();
-      var order = this.sortOrders[sortKey] || 1;
-      var heroes = this.heroes;
-      if (filterKey) {
-        heroes = heroes.filter(function (row) {
-          return Object.keys(row).some(function (key) {
-            return String(row[key]).toLowerCase().indexOf(filterKey) > -1;
-          });
-        });
-      }
-      if (sortKey) {
-        heroes = heroes.slice().sort(function (a, b) {
-          a = a[sortKey];
-          b = b[sortKey];
-          return (a === b ? 0 : a > b ? 1 : -1) * order;
-        });
-      }
-      return heroes;
-    },
-  },
-  filters: {
-    capitalize: function (str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    },
-  },
-  methods: {
-    sortBy: function (key) {
-      this.sortKey = key;
-      this.sortOrders[key] = this.sortOrders[key] * -1;
-    },
-  },
-});
+const BASEURL = "http://127.0.0.1:8000/";
 
-// bootstrap the demo
-var demo = new Vue({
-  el: "#demo",
-  data: {
-    asin: "2",
-    searchQuery: "",
-    reviewerID: "",
-    gridColumns: ["asin", "reviewText"],
-    gridData: [],
-  },
-  methods: {
-    getReview: function () {
-      axios
-        .get(
-          "http://127.0.0.1:8000/review/?asin=" +
-            this.asin +
-            "&reviewerID=" +
-            this.reviewerID
-        )
-        .then(function (res) {
-          this.gridData = res;
-          Vue.$forceUpdate();
+function search() {
+  var search = document.querySelector("input.search").value;
+  axios
+    .get(BASEURL + "readbook/?title=" + search)
+    .then(function (res) {
+      res = res.data;
+      var temp;
+      var td;
+      removePrevTr();
+      for (var i = 0; i < res.length; i++) {
+        temp = document.createElement("tr");
+        temp.classList.add("addedtr");
+        td = document.createElement("td");
+        td.setAttribute("asin", res[i].asin);
+        td.innerText = res[i].title;
+        temp.appendChild(td);
+        td.addEventListener("click", function () {
+          window.location = "detail.html?asin=" + this.getAttribute("asin");
         });
-    },
-  },
-});
+        td = document.createElement("td");
+        img = document.createElement("img");
+        img.src = res[i].imUrl;
+        td.appendChild(img);
+        temp.appendChild(td);
+        td = document.createElement("td");
+        td.innerText = res[i].description;
+        temp.appendChild(td);
+        td = document.createElement("td");
+        td.innerText = res[i].price;
+        temp.appendChild(td);
+        td = document.createElement("td");
+        td.innerText = res[i].categories;
+        temp.appendChild(td);
+        document.querySelector("table").appendChild(temp);
+      }
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+}
+
+function removePrevTr() {
+  document.querySelectorAll(".addedtr").forEach((element) => {
+    element.remove();
+  });
+}
+
+function detailPage() {
+  var asin = window.location.href.split("=").pop();
+  //
+  axios.get(BASEURL + "readreview/?asin=" + asin).then(function (r) {
+    td = document.createElement("td");
+    r = r.data;
+    for (var j = 0; j < r.length; j++) {
+      div = document.createElement("div");
+      if (r[j] != null && r[j].reviewText != null) {
+        div.innerText = r[j].reviewText;
+        document.querySelector(".container").appendChild(div);
+      }
+    }
+  });
+  //
+}
