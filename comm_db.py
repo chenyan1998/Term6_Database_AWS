@@ -5,14 +5,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.sql.sqltypes import INT
 import pymongo
-from .config import *
+from config import *
 
 
 Base = declarative_base()
 # define a Review object
 class Review(Base):
     # table name
-    __tablename__ = MYSQL_TABLE_NAME
+    __tablename__ = MYSQL_TABLE
     # structure
     idx = Column(INT, primary_key=True)
     asin = Column(CHAR(10))
@@ -38,7 +38,7 @@ session = DBSession()
 
 # init mongodb
 # Search for existing book by author and by title.
-mongodb = pymongo.MongoClient("mongodb://Mongodbadmin:Mongodbadmin@35.174.211.255/?authSource=kindle_metadata&authMechanism=SCRAM-SHA-256")
+mongodb = pymongo.MongoClient(f"mongodb://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_IP}/?authSource={MONGODB_COLLOC}&authMechanism=SCRAM-SHA-256")
 mongodb_db = mongodb["kindle_metadata"]
 mongodb_col = mongodb_db["kindle_metadata"]
 
@@ -95,3 +95,4 @@ def read_book(author:str='',title:str=''):
 def add_book(author:str='',title:str='',asin:str='',description:str='',imUrl:str='',price:str=''):
     mongodb_col.insert({'title':title,'asin':asin,'description':description,'imUrl':imUrl,'price':price})
     return {'success':True}
+

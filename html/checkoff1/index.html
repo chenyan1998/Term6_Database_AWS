@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search Page</title>
+    <script src="vue.js"></script>
+    <script src="xe-utils.js"></script>
+    <script src="vxe-table.js"></script>
+    <script src="axios.min.js"></script>
+    <link href="main.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <input v-model="search_text" placeholder="" />
+        <button v-on:click="search_book">Search a book</button>
+        <button v-on:click="addBook">Add a book</button>
+      </div>
+      <template>
+        <div>
+          <vxe-table
+            border
+            highlight-hover-row
+            :data="tableData"
+            @cell-click="viewDetails"
+          >
+            <vxe-table-column type="seq" width="60"></vxe-table-column>
+            <vxe-table-column
+              field="name"
+              title="单字段排序 name"
+              sortable
+            ></vxe-table-column>
+            <vxe-table-column
+              field="role"
+              title="多字段排序 role+num"
+              :sort-by="['role', 'num']"
+              sortable
+            ></vxe-table-column>
+            <vxe-table-column
+              field="num"
+              title="多字段排序 name+role+num"
+              :sort-by="['name', 'role', 'num']"
+              sortable
+            ></vxe-table-column>
+            <vxe-table-column field="num1" title="image">
+              <template v-slot="{ row }">
+                <img
+                  v-if="row.num1"
+                  :src="row.num1"
+                  style="width: 100px" /></template
+            ></vxe-table-column>
+          </vxe-table>
+
+          <vxe-modal
+            v-model="showDetails"
+            title="View details"
+            width="600"
+            height="400"
+            :mask="false"
+            :lock-view="false"
+            resize
+          >
+            <template v-slot>
+              <vxe-table
+                border="inner"
+                auto-resize
+                show-overflow
+                highlight-hover-row
+                height="auto"
+                :show-header="false"
+                :sync-resize="showDetails"
+                :data="detailData"
+              >
+                <vxe-table-column field="label" width="40%"></vxe-table-column>
+                <vxe-table-column field="value"></vxe-table-column>
+              </vxe-table>
+            </template>
+          </vxe-modal>
+          <vxe-modal
+            v-model="showAddBook"
+            title="Add a book"
+            width="600"
+            height="400"
+            :mask="false"
+            :lock-view="false"
+            resize
+          >
+            <template v-slot>
+              <vxe-table
+                class="addBookPage"
+                border="inner"
+                show-overflow
+                highlight-hover-row
+                height="200"
+                :show-header="false"
+                :sync-resize="showAddBook"
+                :data="bookData"
+                :edit-config="{trigger: 'click', mode: 'row'}"
+              >
+                <vxe-table-column field="label" width="40%"></vxe-table-column>
+                <vxe-table-column
+                  field="value"
+                  :edit-render="{name: 'input', attrs: {type: 'text'}}"
+                ></vxe-table-column>
+              </vxe-table>
+              <vxe-button
+                status="primary"
+                class="addBookButton"
+                v-on:click="getAddBook"
+                >Submit</vxe-button
+              >
+            </template>
+          </vxe-modal>
+        </div>
+      </template>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>

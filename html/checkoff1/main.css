@@ -1,0 +1,8 @@
+@import url("style.css");
+.vxe-table--empty-content {
+    display: none !important;
+}
+
+.addBookButton {
+    left: 230px;
+}
