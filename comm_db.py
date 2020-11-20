@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.sql.sqltypes import INT
 import pymongo
-
+from .config import *
 
 
 Base = declarative_base()
