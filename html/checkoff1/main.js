@@ -1,4 +1,5 @@
 const BASEURL = "http://127.0.0.1:8000";
+var HAS_REVIEW;
 
 var Main = {
   data() {
@@ -16,6 +17,7 @@ var Main = {
       this.tableData = [];
     },
     search_book: function () {
+      var _that = this;
       if (this.search_text == "") {
         return;
       }
@@ -24,7 +26,7 @@ var Main = {
         .get(BASEURL + "/readbook/?title=" + this.search_text)
         .then(function (res) {
           res = res.data;
-          console.log(res)
+          _that.tableData = res;
         })
         .catch(function (err) {
           console.log(err);
@@ -32,20 +34,78 @@ var Main = {
     },
     viewDetails: function ({ row }) {
       // add reviews here
+      var _that = this;
       console.log(row);
       // click to close, if the detail window is already open
       if (this.showDetails) {
         this.showDetails = false;
         return;
       }
-      this.detailData = ["name", "role", "num", "num1"].map((field) => {
-        return { label: field, value: row[field] };
-      });
+      this.detailData = ["asin", "title", "imUrl", "description", "price"].map(
+        (field) => {
+          return { label: field, value: row[field] };
+        }
+      );
+      axios
+        .get(BASEURL + "/readreview?asin=" + row["asin"])
+        .then(function (res) {
+          res = res.data;
+          console.log(res);
+          HAS_REVIEW = false;
+          res.forEach((element) => {
+            if (!HAS_REVIEW) {
+              _that.detailData.push({
+                label: "Reviews",
+                value: element.review,
+              });
+              HAS_REVIEW = true;
+            } else {
+              _that.detailData.push({ label: "", value: element.review });
+            }
+          });
+        })
+        .catch();
       this.showDetails = true;
+    },
+    addReview: function () {
+      var _that = this;
+      var bookAsin = document
+        .querySelectorAll(".viewDetail td")[1]
+        .querySelector("span").innerText;
+      var reviewContent = document.querySelector(".reviewContent");
+      if (reviewContent.value == "") {
+        return;
+      }
+      console.log(reviewContent);
+      axios
+        .get(
+          BASEURL +
+            "/addreview/" +
+            "?asin=" +
+            bookAsin +
+            "&content=" +
+            reviewContent.value
+        )
+        .then(function (res) {
+          if (HAS_REVIEW) {
+            _that.detailData.push({ label: "", value: reviewContent.value });
+          } else {
+            _that.detailData.push({
+              label: "Reviews",
+              value: reviewContent.value,
+            });
+            HAS_REVIEW = true;
+          }
+          reviewContent.value = "";
+          alert("Successfully add a review");
+        })
+        .catch(function (err) {
+          console.log(err);
+        });
     },
     addBook: function () {
       this.clearSearchResult();
-      this.bookData = ["name", "role", "num", "num1"].map((field) => {
+      this.bookData = ["title", "imUrl", "description", ""].map((field) => {
         return { label: field, value: "1" };
       });
       this.showAddBook = true;

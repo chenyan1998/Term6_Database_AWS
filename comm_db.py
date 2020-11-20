@@ -18,7 +18,7 @@ class Review(Base):
     asin = Column(CHAR(10))
     helpful = Column(TEXT)
     overall = Column(INT)
-    reviewText = Column(VARCHAR(8000))
+    review = Column(VARCHAR(8000))
     reviewTime = Column(TEXT)
     reviewerID = Column(TEXT)
     reviewerName = Column(TEXT)
@@ -45,11 +45,10 @@ mongodb_col = mongodb_db["kindle_metadata"]
 # review = session.query(Review).filter(Review.id==6).one()
 # print(review.summary)
 
-origins = ["*"]
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,7 +74,7 @@ def read_review(asin: str='', reviewerID:str=''):
 def add_review(asin: str='', reviewerID:str='',content:str=''):
     # global CURRENT_REVIEW_IDX
     # CURRENT_REVIEW_IDX += 1
-    new_review = Review(asin=asin,reviewText=content)
+    new_review = Review(asin=asin,review=content)
     session.add(new_review)
     session.flush()
     session.commit()

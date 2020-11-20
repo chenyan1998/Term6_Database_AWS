@@ -1,8 +1,12 @@
 @import url("style.css");
-.vxe-table--empty-content {
-    display: none !important;
-}
 
 .addBookButton {
     left: 230px;
 }
+
+.vxe-cell {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+

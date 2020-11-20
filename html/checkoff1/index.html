@@ -20,39 +20,47 @@
       <template>
         <div>
           <vxe-table
+            empty-text="No result."
             border
             highlight-hover-row
             :data="tableData"
             @cell-click="viewDetails"
+            highlight-hover-row
+            highlight-current-row
+            highlight-hover-column
+            highlight-current-column
           >
             <vxe-table-column type="seq" width="60"></vxe-table-column>
-            <vxe-table-column
-              field="name"
-              title="单字段排序 name"
-              sortable
-            ></vxe-table-column>
-            <vxe-table-column
-              field="role"
-              title="多字段排序 role+num"
-              :sort-by="['role', 'num']"
-              sortable
-            ></vxe-table-column>
-            <vxe-table-column
-              field="num"
-              title="多字段排序 name+role+num"
-              :sort-by="['name', 'role', 'num']"
-              sortable
-            ></vxe-table-column>
-            <vxe-table-column field="num1" title="image">
+            <vxe-table-column field="title" title="title" sortable>
+              <template v-slot="{ row }">
+                <div
+                  v-if="row.asin"
+                  :asin="row.asin"
+                >{{row.title}}</div
+              ></template>
+            </vxe-table-column>
+            <vxe-table-column field="imUrl" title="image">
               <template v-slot="{ row }">
                 <img
-                  v-if="row.num1"
-                  :src="row.num1"
-                  style="width: 100px" /></template
+                  v-if="row.imUrl"
+                  :src="row.imUrl"
+                  style="max-width: 270px; max-height: 190px" /></template
+            ></vxe-table-column>
+            <vxe-table-column
+              field="description"
+              title="Description"
+              sortable
+            ></vxe-table-column>
+            <vxe-table-column
+              field="price"
+              title="Price in $"
+              sortable
+              width="120"
             ></vxe-table-column>
           </vxe-table>
 
           <vxe-modal
+          class="viewDetail"
             v-model="showDetails"
             title="View details"
             width="600"
@@ -72,9 +80,13 @@
                 :sync-resize="showDetails"
                 :data="detailData"
               >
-                <vxe-table-column field="label" width="40%"></vxe-table-column>
-                <vxe-table-column field="value"></vxe-table-column>
+                <vxe-table-column field="label" width="25%"></vxe-table-column>
+                <vxe-table-column field="value">
+                  
+                </vxe-table-column>
               </vxe-table>
+              <input class="reviewContent">
+              <button v-on:click="addReview">Add a review</button>
             </template>
           </vxe-modal>
           <vxe-modal
