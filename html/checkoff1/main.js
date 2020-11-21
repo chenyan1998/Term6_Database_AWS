@@ -47,7 +47,7 @@ var Main = {
         }
       );
       axios
-        .get(BASEURL + "/readreview?asin=" + row["asin"])
+        .get(BASEURL + "/readreview/?asin=" + row["asin"])
         .then(function (res) {
           res = res.data;
           console.log(res);
@@ -105,15 +105,43 @@ var Main = {
     },
     addBook: function () {
       this.clearSearchResult();
-      this.bookData = ["title", "imUrl", "description", ""].map((field) => {
-        return { label: field, value: "1" };
+      this.bookData = ["asin", "title", "imUrl", "description"].map((field) => {
+        return { label: field, value: "" };
       });
       this.showAddBook = true;
+      setTimeout(function () {
+        document
+          .querySelectorAll(".addBookPage.vxe-table .col--edit span")
+          .forEach((element) => {
+            element.innerText = "";
+          });
+      }, 100);
     },
     getAddBook: function () {
       var spans = document.querySelectorAll(
         ".addBookPage.vxe-table .col--edit span"
       );
+      if (spans[0].innerText != "　" && spans[0].innerText != "") {
+        axios
+          .get(
+            BASEURL +
+              "/addbook/?asin=" +
+              spans[0].innerText +
+              "&title=" +
+              spans[1].innerText +
+              "&imUrl=" +
+              spans[2].innerText +
+              "&description=" +
+              spans[3].innerText
+          )
+          .then(function () {
+            console.log("add book success");
+            spans.forEach((element) => {
+              element.innerText = "";
+            });
+            alert("Add book success")
+          });
+      }
     },
   },
 };

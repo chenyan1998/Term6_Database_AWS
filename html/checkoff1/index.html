@@ -46,6 +46,16 @@
                   :src="row.imUrl"
                   style="max-width: 270px; max-height: 190px" /></template
             ></vxe-table-column>
+            <vxe-table-column field="categories" title="category" sortable>
+              <template v-slot="{ row }">
+                <ul>
+                  <li v-for="item in row.categories">
+                    <span v-for='i in item.slice(0,item.length-1)'>{{i}}></span>
+                    <span v-for='i in item.slice(item.length-1,item.length)'>{{i}}</span>
+                  </li>
+                </ul>
+                </template
+            ></vxe-table-column>
             <vxe-table-column
               field="description"
               title="Description"
@@ -110,7 +120,7 @@
                 :data="bookData"
                 :edit-config="{trigger: 'click', mode: 'row'}"
               >
-                <vxe-table-column field="label" width="40%"></vxe-table-column>
+                <vxe-table-column field="label" width="25%"></vxe-table-column>
                 <vxe-table-column
                   field="value"
                   :edit-render="{name: 'input', attrs: {type: 'text'}}"

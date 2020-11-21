@@ -31,7 +31,7 @@ class Review(Base):
 # engine = create_engine('mysql+pymysql://root:jrKa2qZhpt-Easd3GGV97@localhost:3306/kindle_review')
 engine = create_engine(f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@{MYSQL_IP}:{MYSQL_PORT}/{MYSQL_DATABASE}')
 DBSession = sessionmaker(bind=engine)
-session = DBSession()
+# session = DBSession()
 # # get CURRENT_REVIEW_IDX from mysql
 # CURRENT_REVIEW_IDX = session.query(func.max(Review.idx)).scalar() with autoincrement, dont need this
 
@@ -62,22 +62,26 @@ def mongo_fetch_all(cur):
 
 @app.get("/readreview/")
 def read_review(asin: str='', reviewerID:str=''):
+    session = DBSession()
     if asin and reviewerID:
         reviews = session.query(Review).filter(Review.asin == asin).filter(Review.reviewerID == reviewerID).all()
     elif asin:
         reviews = session.query(Review).filter(Review.asin == asin).all()
     else:
         reviews = session.query(Review).filter(Review.reviewerID == reviewerID).all()
+    session.close()
     return reviews
 
 @app.get("/addreview/")
 def add_review(asin: str='', reviewerID:str='',content:str=''):
     # global CURRENT_REVIEW_IDX
     # CURRENT_REVIEW_IDX += 1
+    session = DBSession()
     new_review = Review(asin=asin,review=content)
     session.add(new_review)
     session.flush()
     session.commit()
+    session.close()
     return {'success':True}
 
 @app.get('/readbook/')
