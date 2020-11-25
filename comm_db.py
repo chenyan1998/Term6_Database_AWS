@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.sql.sqltypes import INT
 import pymongo
 from config import *
-
+from urllib.parse import unquote
 
 Base = declarative_base()
 # define a Review object
@@ -56,6 +56,7 @@ app.add_middleware(
 
 def mongo_fetch_all(cur):
     result = []
+    result.append(cur.count())
     for i in cur:
         result.append(i)
     return result
@@ -85,13 +86,16 @@ def add_review(asin: str='', reviewerID:str='',content:str=''):
     return {'success':True}
 
 @app.get('/readbook/')
-def read_book(author:str='',title:str=''):
+def read_book(author:str='',title:str='',category='',offset:int=0,batch=50):
     if author and title:
-        result = mongo_fetch_all(mongodb_col.find({'author':f'/{author}/','title':f'/{title}/'},{'_id':0}))
+        result = mongo_fetch_all(mongodb_col.find({'author':f'/{author}/','title':f'/{title}/'},{'_id':0},skip=offset,limit=batch))
     elif author:
-        result = mongo_fetch_all(mongodb_col.find({'author':f'/{author}/'},{'_id':0}))
+        result = mongo_fetch_all(mongodb_col.find({'author':f'/{author}/'},{'_id':0},skip=offset,limit=batch))
+    elif category:
+        category = unquote(category)
+        result = mongo_fetch_all(mongodb_col.find({'categories':{'$elemMatch':{'$elemMatch':{'$in':[f'{category}']}}}},{'_id':0},skip=offset,limit=batch))
     else:
-        result = mongo_fetch_all(mongodb_col.find({'title':{'$regex': f".*{title}.*", '$options': 'i'}},{'_id':0}))
+        result = mongo_fetch_all(mongodb_col.find({'title':{'$regex': f".*{title}.*", '$options': 'i'}},{'_id':0},skip=offset,limit=batch))
     return result
 
 @app.get('/addbook/')

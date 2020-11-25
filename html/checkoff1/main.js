@@ -10,29 +10,99 @@ var Main = {
       detailData: [],
       bookData: [],
       tableData: [],
+      currentReqUrl: "",
+      currentOffset: 0,
+      showNextPage: false,
     };
   },
   methods: {
     clearSearchResult: function () {
       this.tableData = [];
     },
-    search_book: function () {
+    loadNextPage: function () {
+      this.currentOffset += 50;
       var _that = this;
-      if (this.search_text == "") {
-        return;
-      }
-      this.clearSearchResult();
       axios
-        .get(BASEURL + "/readbook/?title=" + this.search_text)
+        .get(this.currentReqUrl + "&offset=" + this.currentOffset)
         .then(function (res) {
-          res = res.data;
-          _that.tableData = res;
+          _that.tableData = res.data.slice(1)
         })
         .catch(function (err) {
           console.log(err);
         });
     },
-    viewDetails: function ({ row }) {
+    removeSearchCategory: function () {
+      var spans = document.querySelectorAll(".vxe-cell li span");
+      spans.forEach((element) => {
+        element.outerHTML = element.outerHTML;
+      });
+    },
+    addSearchCategory: function () {
+      this.removeSearchCategory();
+      var _that = this;
+      var spans = document.querySelectorAll(".vxe-cell li span");
+      spans.forEach((element) => {
+        element.addEventListener("click", function () {
+          var cate = this.innerText.replace(">", "");
+          _that.currentReqUrl =
+            BASEURL + "/readbook/?category=" + encodeURIComponent(cate);
+          _that.currentOffset = 0;
+          axios
+            .get(BASEURL + "/readbook/?category=" + encodeURIComponent(cate))
+            .then(function (res) {
+              _that.tableData = res.data.slice(1);
+              if (parseInt(res.data[0]) > 50) {
+                _that.showNextPage = true;
+              } else {
+                _that, (showNextPage = false);
+              }
+              document.querySelector(".result_conut").innerHTML =
+                "<i>" + res.data[0] + " results" + "</i>";
+              document.querySelector("span.search_info").innerHTML =
+                "Result for <i>category </i>: " + cate;
+              setTimeout(function () {
+                _that.addSearchCategory();
+              }, 1500);
+            })
+            .catch(function (err) {
+              console.log(err);
+            });
+        });
+      });
+    },
+    search_book: function () {
+      var _that = this;
+      if (this.search_text == "") {
+        return;
+      }
+      _that.showNextPage = false;
+      document.querySelector("span.search_info").innerHTML =
+        "Result for <i>title </i>: " + this.search_text;
+      this.clearSearchResult();
+      _that.currentReqUrl = BASEURL + "/readbook/?title=" + this.search_text;
+      _that.currentOffset = 0;
+      axios
+        .get(BASEURL + "/readbook/?title=" + this.search_text)
+        .then(function (res) {
+          res = res.data;
+          if (parseInt(res[0]) > 50) {
+            _that.showNextPage = true;
+          }
+          document.querySelector(".result_conut").innerHTML =
+            "<i>" + res[0] + " results" + "</i>";
+          _that.tableData = res.slice(1);
+          setTimeout(function () {
+            _that.addSearchCategory();
+          }, 1000);
+        })
+        .catch(function (err) {
+          console.log(err);
+        });
+    },
+    viewDetails: function ({ row, column }) {
+      if (column.property == "categories") {
+        return;
+      }
       // add reviews here
       var _that = this;
       console.log(row);
@@ -50,7 +120,6 @@ var Main = {
         .get(BASEURL + "/readreview/?asin=" + row["asin"])
         .then(function (res) {
           res = res.data;
-          console.log(res);
           HAS_REVIEW = false;
           res.forEach((element) => {
             if (!HAS_REVIEW) {
@@ -139,7 +208,7 @@ var Main = {
             spans.forEach((element) => {
               element.innerText = "";
             });
-            alert("Add book success")
+            alert("Add book success");
           });
       }
     },

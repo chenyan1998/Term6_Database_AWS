@@ -13,9 +13,16 @@
   <body>
     <div id="app">
       <div class="header">
-        <input v-model="search_text" placeholder="" />
+        <input
+          v-model="search_text"
+          placeholder=""
+          v-on:keyup.enter="search_book"
+        />
         <button v-on:click="search_book">Search a book</button>
         <button v-on:click="addBook">Add a book</button>
+        <span class="search_info"></span>
+        <span class="result_conut"></span>
+        <button v-show="showNextPage" v-on:click='loadNextPage'>Next Page</button>
       </div>
       <template>
         <div>
@@ -33,29 +40,30 @@
             <vxe-table-column type="seq" width="60"></vxe-table-column>
             <vxe-table-column field="title" title="title" sortable>
               <template v-slot="{ row }">
-                <div
-                  v-if="row.asin"
-                  :asin="row.asin"
-                >{{row.title}}</div
-              ></template>
+                <div v-if="row.asin" :asin="row.asin">
+                  {{row.title}}
+                </div></template
+              >
             </vxe-table-column>
-            <vxe-table-column field="imUrl" title="image">
+            <vxe-table-column field="imUrl" title="image" width="200">
               <template v-slot="{ row }">
                 <img
                   v-if="row.imUrl"
                   :src="row.imUrl"
-                  style="max-width: 270px; max-height: 190px" /></template
+                  style="max-width: 182px; max-height: 190px" /></template
             ></vxe-table-column>
             <vxe-table-column field="categories" title="category" sortable>
               <template v-slot="{ row }">
                 <ul>
                   <li v-for="item in row.categories">
-                    <span v-for='i in item.slice(0,item.length-1)'>{{i}}></span>
-                    <span v-for='i in item.slice(item.length-1,item.length)'>{{i}}</span>
+                    <span v-for="i in item.slice(0,item.length-1)">{{i}}></span>
+                    <span v-for="i in item.slice(item.length-1,item.length)"
+                      >{{i}}</span
+                    >
                   </li>
                 </ul>
-                </template
-            ></vxe-table-column>
+              </template></vxe-table-column
+            >
             <vxe-table-column
               field="description"
               title="Description"
@@ -70,7 +78,7 @@
           </vxe-table>
 
           <vxe-modal
-          class="viewDetail"
+            class="viewDetail"
             v-model="showDetails"
             title="View details"
             width="600"
@@ -92,12 +100,22 @@
               >
                 <vxe-table-column field="label" width="25%"></vxe-table-column>
                 <vxe-table-column field="value">
-                  
+                  <template v-slot="{ row }">
+                    <!-- {{row.value}} -->
+                    <span v-if='row.value&&row.value.toString().indexOf("http")!=-1'>
+                      <img
+                        :src="row.value"
+                        style="max-width: 182px; max-height: 190px"
+                      />
+                    </span>
+                    <span v-else>{{row.value}}</span>
+                  </template>
                 </vxe-table-column>
               </vxe-table>
-              <input class="reviewContent">
+              <input class="reviewContent" />
               <button v-on:click="addReview">Add a review</button>
             </template>
+
           </vxe-modal>
           <vxe-modal
             v-model="showAddBook"
