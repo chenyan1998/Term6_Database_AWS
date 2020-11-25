@@ -26,6 +26,7 @@ var Main = {
         .get(this.currentReqUrl + "&offset=" + this.currentOffset)
         .then(function (res) {
           _that.tableData = res.data.slice(1)
+          scrollTo(0,0)
         })
         .catch(function (err) {
           console.log(err);
