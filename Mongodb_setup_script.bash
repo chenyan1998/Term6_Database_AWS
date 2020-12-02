@@ -22,7 +22,7 @@ echo "Unzipping metadata file"
 unzip kindle_metadata_final.zip
 
 echo "Downloading mongodb commands and execute"
-wget https://raw.githubusercontent.com/chiziheng/ziheng-s-first-repo/main/mongo_commands.js
+wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/mongo_commands.js?token=AJT3LRB3VQ3K3BTUIWZ2FF27Y6B3K
 mongo < mongo_commands.js
 
 echo "Importing data in to mongodb"
