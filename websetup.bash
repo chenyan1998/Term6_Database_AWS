@@ -20,7 +20,7 @@ cd frontend
 unzip frontend.zip
 cd ..
 sudo mv -t /var/www/html frontend/index.* frontend/*.css frontend/*.js
-sudo mv -t /etc/nginx/sites-available/default frontend/nginxdefault
+sudo mv frontend/nginxdefault /etc/nginx/sites-available/default
 sudo nginx -s reload
 cd frontend/
 python3.7 -m uvicorn frontend/comm_db:app &

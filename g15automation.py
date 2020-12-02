@@ -225,7 +225,7 @@ def create_security_group():
         traceback.print_exc()
 
 
-def send_shfile_exec(ip_addr, bash_file_path, files_to_upload,pem_string):
+def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
     try:
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -243,7 +243,8 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload,pem_string):
         sftp_client = ssh_client.open_sftp()
         sftp_client.put(bash_file_path, f'/home/ubuntu/{bash_file_path}')
         for file_path in files_to_upload:
-            sftp_client.put(file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
+            sftp_client.put(
+                file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
         print(f'Start executing {bash_file_path}')
         ssh_client.exec_command(
             f"sudo chmod +x /home/ubuntu/{bash_file_path}", get_pty=True)
@@ -251,11 +252,15 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload,pem_string):
             f'bash /home/ubuntu/{bash_file_path}', get_pty=True)
         # while not stdout.channel.exit_status_ready():
         #     time.sleep(1)
-        for line in stdout.read().splitlines():
-            print(line)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
         print('done')
+        # for line in stdout.read().splitlines():
+        #     print(line)
         sftp_client.close()
+        print(f'2 {bash_file_path}')
         ssh_client.close()
+        print(f'3 {bash_file_path}')
     except:
         traceback.print_exc()
 
@@ -268,12 +273,14 @@ def prepare_files():
             content = open(os.path.join(root, file_name),
                            'r', encoding="utf8").read()
             if file_name == 'config.py':
-                content.replace('[1]', G15_INSTANCE['mysql']["private_ip"])
-                content.replace('[2]', G15_INSTANCE['mongo']["private_ip"])
+                content = content.replace(
+                    '[1]', G15_INSTANCE['mysql']["private_ip"])
+                content = content.replace(
+                    '[2]', G15_INSTANCE['mongo']["private_ip"])
             elif file_name == 'main.js':
-                content.replace('[1]',
-                                f"http://{G15_INSTANCE['web']['public_ip']}/api")
-            with open(f'frontend/{file_name}', 'w',encoding="utf8") as f:
+                content = content.replace('[1]',
+                                          f"http://{G15_INSTANCE['web']['public_ip']}/api")
+            with open(f'frontend/{file_name}', 'w', encoding="utf8") as f:
                 f.write(content)
     subprocess.run("git archive -o frontend.zip  HEAD:frontend/")
 
@@ -315,11 +322,11 @@ if __name__ == "__main__":
     prepare_files()
     p = Pool(3)   # two
     p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["mongo"]["public_ip"], 'Mongodb_setup_script.bash', ["kindle_metadata_final.json","mongo_commands.js"],G15_SSH_KEY_PEM,))
+        G15_INSTANCE["mongo"]["public_ip"], 'Mongodb_setup_script.bash', ["kindle_metadata_final.json", "mongo_commands.js"], G15_SSH_KEY_PEM,))
     p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["mysql"]["public_ip"], 'Mysql_setup_script.bash',["sql_commands.sql"], G15_SSH_KEY_PEM,))
+        G15_INSTANCE["mysql"]["public_ip"], 'Mysql_setup_script.bash', ["sql_commands.sql"], G15_SSH_KEY_PEM,))
     p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["web"]["public_ip"], 'websetup.bash',["frontend.zip"], G15_SSH_KEY_PEM,))
+        G15_INSTANCE["web"]["public_ip"], 'websetup.bash', ["frontend.zip"], G15_SSH_KEY_PEM,))
     print('Wait for all processes done')
     p.close()
     p.join()
