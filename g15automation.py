@@ -6,6 +6,8 @@ import time
 import paramiko
 from io import StringIO
 from multiprocessing import Pool
+import subprocess
+
 
 def process_CRED(somecred):
     """
@@ -223,24 +225,30 @@ def create_security_group():
         traceback.print_exc()
 
 
-def send_shfile_exec(ip_addr, bash_file_path,pem_string):
+def send_shfile_exec(ip_addr, bash_file_path, files_to_upload,pem_string):
     try:
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         pem_k = paramiko.RSAKey.from_private_key(StringIO(pem_string))
         while True:
             try:
-                ssh_client.connect(hostname=ip_addr, username='ubuntu', pkey=pem_k)
+                ssh_client.connect(
+                    hostname=ip_addr, username='ubuntu', pkey=pem_k)
                 ssh_client.get_transport().window_size = 3 * 1024 * 1024
                 break
             except:
                 pass
-        print(f'Start executing {bash_file_path}')
-        ssh_client.exec_command("sudo apt update",get_pty=True)
+        print(f'Start executing {bash_file_path} upload files')
+        ssh_client.exec_command("sudo apt update", get_pty=True)
         sftp_client = ssh_client.open_sftp()
         sftp_client.put(bash_file_path, f'/home/ubuntu/{bash_file_path}')
-        ssh_client.exec_command(f"sudo chmod +x /home/ubuntu/{bash_file_path}",get_pty=True)
-        stdin, stdout, stderr= ssh_client.exec_command(f'bash /home/ubuntu/{bash_file_path}',get_pty=True)
+        for file_path in files_to_upload:
+            sftp_client.put(file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
+        print(f'Start executing {bash_file_path}')
+        ssh_client.exec_command(
+            f"sudo chmod +x /home/ubuntu/{bash_file_path}", get_pty=True)
+        stdin, stdout, stderr = ssh_client.exec_command(
+            f'bash /home/ubuntu/{bash_file_path}', get_pty=True)
         # while not stdout.channel.exit_status_ready():
         #     time.sleep(1)
         for line in stdout.read().splitlines():
@@ -250,6 +258,23 @@ def send_shfile_exec(ip_addr, bash_file_path,pem_string):
         ssh_client.close()
     except:
         traceback.print_exc()
+
+
+def prepare_files():
+    # for web
+    for root, dirs, files in os.walk('frontend_template/'):
+        for file_name in files:
+            content = open(os.path.join(root, file_name),
+                           'r', encoding="utf8").read()
+            if file_name == 'config.py':
+                content.replace('[1]', G15_INSTANCE['mysql']["private_ip"])
+                content.replace('[2]', G15_INSTANCE['mongo']["private_ip"])
+            elif file_name == 'main.js':
+                content.replace('[1]',
+                                f"http://{G15_INSTANCE['web']['public_ip']}/api")
+            with open(f'frontend/{file_name}', 'w',encoding="utf8") as f:
+                f.write(content)
+    subprocess.run("git archive -o frontend.zip  HEAD:frontend/")
 
 
 if __name__ == "__main__":
@@ -268,8 +293,8 @@ if __name__ == "__main__":
     # create WEB instance
     webtype = select_instance_type("WEB")
     g15_ins_web = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
-                                        InstanceType=webtype, KeyName=G15_SSH_KEY,
-                                        SecurityGroupIds=[G15_SG_ID.web])
+                                          InstanceType=webtype, KeyName=G15_SSH_KEY,
+                                          SecurityGroupIds=[G15_SG_ID.web])
     # create MySQL instance
     mysqltype = select_instance_type("MySQL")
     g15_ins_mysql = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
@@ -286,9 +311,14 @@ if __name__ == "__main__":
     store_instance_ip(g15_ins_mongo[0].id, 'mongo')
 
     print(G15_INSTANCE)
-    p = Pool(2)   # two
-    p.apply_async(send_shfile_exec,args=(G15_INSTANCE["mongo"]["public_ip"],'Mongodb_setup_script.bash',G15_SSH_KEY_PEM,))
-    p.apply_async(send_shfile_exec,args=(G15_INSTANCE["mysql"]["public_ip"],'Mysql_setup_script.bash',G15_SSH_KEY_PEM,))
+    p = Pool(3)   # two
+    p.apply_async(send_shfile_exec, args=(
+        G15_INSTANCE["mongo"]["public_ip"], 'Mongodb_setup_script.bash', ["kindle_metadata_final.json","mongo_commands.js"],G15_SSH_KEY_PEM,))
+    p.apply_async(send_shfile_exec, args=(
+        G15_INSTANCE["mysql"]["public_ip"], 'Mysql_setup_script.bash',["sql_commands.sql"], G15_SSH_KEY_PEM,))
+    p.apply_async(send_shfile_exec, args=(
+        G15_INSTANCE["web"]["public_ip"], 'websetup.bash',["frontend.zip"], G15_SSH_KEY_PEM,))
     print('Wait for all processes done')
     p.close()
     p.join()
+    print(f'You can visit http://{G15_INSTANCE["web"]["public_ip"]}')

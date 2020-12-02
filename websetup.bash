@@ -1,3 +1,4 @@
+while [ ! -f /var/lib/cloud/instance/boot-finished ]; do sleep 1; done
 sudo apt update -y 
 sudo apt remove python3 -y
 sudo apt install software-properties-common -y
@@ -11,3 +12,14 @@ wget https://bootstrap.pypa.io/get-pip.py
 python3.7 get-pip.py
 rm get-pip.py -f
 pip3 install fastapi uvicorn sqlalchemy pymongo pymysql
+sudo apt install nginx -y
+sudo apt install unzip -y
+mkdir frontend
+mv frontend.zip frontend/
+cd frontend
+unzip frontend.zip
+cd ..
+sudo mv -t /var/www/html frontend/index.* frontend/*.css frontend/*.js
+sudo mv -t /etc/nginx/sites-available/default frontend/nginxdefault
+sudo nginx -s reload
+python3.7 -m uvicorn comm_db:app&

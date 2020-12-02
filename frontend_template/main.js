@@ -1,4 +1,4 @@
-const BASEURL = "http://127.0.0.1:8000";
+const BASEURL = "[1]";
 var HAS_REVIEW;
 
 var Main = {
