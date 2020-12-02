@@ -24,7 +24,7 @@ wait
 #sudo pkill mysql
 
 echo "Start downloading sql script and book review data"
-wget https://raw.githubusercontent.com/chiziheng/ziheng-s-first-repo/main/sql_commands.sql
+wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/sql_commands.sql?token=AJT3LRAUR7PJX4DEG3JUOX27Y6BPS
 wget -c https://istd50043.s3-ap-southeast-1.amazonaws.com/kindle-reviews.zip -O kindle-reviews.zip
 
 echo "Executing SQL commands to create table and unzipping data file"
