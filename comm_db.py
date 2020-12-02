@@ -7,6 +7,7 @@ from sqlalchemy.sql.sqltypes import INT
 import pymongo
 from config import *
 from urllib.parse import unquote
+import logging
 
 Base = declarative_base()
 # define a Review object
@@ -53,6 +54,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 def mongo_fetch_all(cur):
     result = []

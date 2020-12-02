@@ -16,6 +16,14 @@ var Main = {
     };
   },
   methods: {
+    decodeHtml: function (html) {
+      var txt = document.createElement("textarea");
+      txt.innerHTML = html;
+      if (txt.value == "undefined") {
+        return "-";
+      }
+      return txt.value;
+    },
     clearSearchResult: function () {
       this.tableData = [];
     },
@@ -25,8 +33,8 @@ var Main = {
       axios
         .get(this.currentReqUrl + "&offset=" + this.currentOffset)
         .then(function (res) {
-          _that.tableData = res.data.slice(1)
-          scrollTo(0,0)
+          _that.tableData = res.data.slice(1);
+          scrollTo(0, 0);
         })
         .catch(function (err) {
           console.log(err);

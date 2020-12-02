@@ -41,14 +41,14 @@
             <vxe-table-column field="title" title="title" sortable>
               <template v-slot="{ row }">
                 <div v-if="row.asin" :asin="row.asin">
-                  {{row.title}}
+                  {{decodeHtml(row.title)}}
                 </div></template
               >
             </vxe-table-column>
             <vxe-table-column field="imUrl" title="image" width="200">
-              <template v-slot="{ row }">
+              <template v-slot="{ row }" >
                 <img
-                  v-if="row.imUrl"
+                  v-if="row.imUrl&&row.imUrl.toString().indexOf('http')!=-1"
                   :src="row.imUrl"
                   style="max-width: 182px; max-height: 190px" /></template
             ></vxe-table-column>
@@ -68,7 +68,11 @@
               field="description"
               title="Description"
               sortable
-            ></vxe-table-column>
+            ><template v-slot="{ row }" >
+              <div>{{decodeHtml(row.description)}}</div>
+              </template
+          >
+          </vxe-table-column>
             <vxe-table-column
               field="price"
               title="Price in $"
@@ -101,14 +105,13 @@
                 <vxe-table-column field="label" width="25%"></vxe-table-column>
                 <vxe-table-column field="value">
                   <template v-slot="{ row }">
-                    <!-- {{row.value}} -->
                     <span v-if='row.value&&row.value.toString().indexOf("http")!=-1'>
                       <img
                         :src="row.value"
                         style="max-width: 182px; max-height: 190px"
                       />
                     </span>
-                    <span v-else>{{row.value}}</span>
+                    <span v-else>{{decodeHtml(row.value)}}</span>
                   </template>
                 </vxe-table-column>
               </vxe-table>

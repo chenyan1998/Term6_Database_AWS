@@ -15,8 +15,9 @@ ul {
 }
 
 .viewDetail tr:nth-child(3) td {
-  height: 200px !important;
+  max-height: 200px !important;
 }
+
 .viewDetail tr:nth-child(3) td div {
   max-height: fit-content !important;
 }
