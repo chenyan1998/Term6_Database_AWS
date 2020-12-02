@@ -1,4 +1,4 @@
-const BASEURL = "http://3.238.245.105/api";
+const BASEURL = "http://3.238.228.96/api";
 var HAS_REVIEW;
 
 var Main = {
@@ -148,7 +148,7 @@ var Main = {
     addReview: function () {
       var _that = this;
       var bookAsin = document
-        .querySelectorAll(".viewDetail td")http://3.238.245.105/api
+        .querySelectorAll(".viewDetail td")[1]
         .querySelector("span").innerText;
       var reviewContent = document.querySelector(".reviewContent");
       if (reviewContent.value == "") {
@@ -206,7 +206,7 @@ var Main = {
               "/addbook/?asin=" +
               spans[0].innerText +
               "&title=" +
-              spanshttp://3.238.245.105/api.innerText +
+              spans[1].innerText +
               "&imUrl=" +
               spans[2].innerText +
               "&description=" +

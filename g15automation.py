@@ -6,8 +6,7 @@ import time
 import paramiko
 from io import StringIO
 from multiprocessing import Pool
-import subprocess
-
+import zipfile
 
 def process_CRED(somecred):
     """
@@ -70,7 +69,7 @@ def store_instance_ip(instance_id, instance_name):
 
 def select_instance_type(ins_name):
     # TEST
-    return G15_INSTANCE_TYPE[3]
+    return G15_INSTANCE_TYPE[4]
     global G15_SELECT_ASK
     if G15_SELECT_ASK == '':
         # initial ask string
@@ -253,7 +252,7 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
         # while not stdout.channel.exit_status_ready():
         #     time.sleep(1)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            print(f"From {bash_file_path} " + line, end="")
         print('done')
         # for line in stdout.read().splitlines():
         #     print(line)
@@ -268,21 +267,23 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
 def prepare_files():
     # for web
     global G15_INSTANCE
+    tarZip = zipfile.ZipFile('frontend.zip', 'w', zipfile.ZIP_DEFLATED)
     for root, dirs, files in os.walk('frontend_template/'):
         for file_name in files:
             content = open(os.path.join(root, file_name),
                            'r', encoding="utf8").read()
             if file_name == 'config.py':
                 content = content.replace(
-                    '[1]', G15_INSTANCE['mysql']["private_ip"])
+                    '[[1]]', G15_INSTANCE['mysql']["private_ip"])
                 content = content.replace(
-                    '[2]', G15_INSTANCE['mongo']["private_ip"])
+                    '[[2]]', G15_INSTANCE['mongo']["private_ip"])
             elif file_name == 'main.js':
-                content = content.replace('[1]',
+                content = content.replace('[[1]]',
                                           f"http://{G15_INSTANCE['web']['public_ip']}/api")
             with open(f'frontend/{file_name}', 'w', encoding="utf8") as f:
                 f.write(content)
-    subprocess.run("git archive -o frontend.zip  HEAD:frontend/")
+            tarZip.write(f'frontend/{file_name}')
+    tarZip.close()
 
 
 if __name__ == "__main__":

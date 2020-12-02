@@ -1,4 +1,4 @@
-const BASEURL = "[1]";
+const BASEURL = "[[1]]";
 var HAS_REVIEW;
 
 var Main = {
