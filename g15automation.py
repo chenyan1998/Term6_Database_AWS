@@ -1,4 +1,3 @@
-from os import truncate
 import boto3
 import traceback
 import os
@@ -6,8 +5,7 @@ import pickle
 import time
 import paramiko
 from io import StringIO
-from g15_config import *
-
+from multiprocessing import Pool
 
 def process_CRED(somecred):
     """
@@ -69,6 +67,8 @@ def store_instance_ip(instance_id, instance_name):
 
 
 def select_instance_type(ins_name):
+    # TEST
+    return G15_INSTANCE_TYPE[3]
     global G15_SELECT_ASK
     if G15_SELECT_ASK == '':
         # initial ask string
@@ -223,58 +223,72 @@ def create_security_group():
         traceback.print_exc()
 
 
-def send_shfile_exec(ip_addr, bash_file_path):
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    pem_k = paramiko.RSAKey.from_private_key(StringIO(G15_SSH_KEY_PEM))
-    while True:
-        try:
-            ssh_client.connect(hostname=ip_addr, username='ubuntu', pkey=pem_k)
-            break
-        except:
-            pass
-    ssh_client.exec_command("sudo apt update",get_pty=True)
-    sftp_client = ssh_client.open_sftp()
-    sftp_client.put(bash_file_path, f'/home/ubuntu/{bash_file_path}')
-    ssh_client.exec_command(f"sudo chmod +x /home/ubuntu/{bash_file_path}",get_pty=True)
-    stdin, stdout, stderr= ssh_client.exec_command(f'sh /home/ubuntu/{bash_file_path}',get_pty=True)
-    print(stdout.read())
-    sftp_client.close()
-    ssh_client.close()
+def send_shfile_exec(ip_addr, bash_file_path,pem_string):
+    try:
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        pem_k = paramiko.RSAKey.from_private_key(StringIO(pem_string))
+        while True:
+            try:
+                ssh_client.connect(hostname=ip_addr, username='ubuntu', pkey=pem_k)
+                ssh_client.get_transport().window_size = 3 * 1024 * 1024
+                break
+            except:
+                pass
+        print(f'Start executing {bash_file_path}')
+        ssh_client.exec_command("sudo apt update",get_pty=True)
+        sftp_client = ssh_client.open_sftp()
+        sftp_client.put(bash_file_path, f'/home/ubuntu/{bash_file_path}')
+        ssh_client.exec_command(f"sudo chmod +x /home/ubuntu/{bash_file_path}",get_pty=True)
+        stdin, stdout, stderr= ssh_client.exec_command(f'bash /home/ubuntu/{bash_file_path}',get_pty=True)
+        # while not stdout.channel.exit_status_ready():
+        #     time.sleep(1)
+        for line in stdout.read().splitlines():
+            print(line)
+        print('done')
+        sftp_client.close()
+        ssh_client.close()
+    except:
+        traceback.print_exc()
 
 
+if __name__ == "__main__":
+    from g15_config import *
+    # initialize session and ec2
+    g15session = get_aws_session()
+    g15ec2 = g15session.resource('ec2')
+    g15ec2client = g15session.client('ec2')
 
-# initialize session and ec2
-g15session = get_aws_session()
-g15ec2 = g15session.resource('ec2')
-g15ec2client = g15session.client('ec2')
+    # initialized ssh key
+    create_ssh_key()
 
-# initialized ssh key
-create_ssh_key()
+    # initialize VPC and security groups
+    create_security_group()
 
-# initialize VPC and security groups
-create_security_group()
+    # create WEB instance
+    webtype = select_instance_type("WEB")
+    g15_ins_web = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
+                                        InstanceType=webtype, KeyName=G15_SSH_KEY,
+                                        SecurityGroupIds=[G15_SG_ID.web])
+    # create MySQL instance
+    mysqltype = select_instance_type("MySQL")
+    g15_ins_mysql = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
+                                            InstanceType=mysqltype, KeyName=G15_SSH_KEY,
+                                            SecurityGroupIds=[G15_SG_ID.mysql])
+    # create MongoDB instance
+    mongotype = select_instance_type("MongoDB")
+    g15_ins_mongo = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
+                                            InstanceType=mongotype, KeyName=G15_SSH_KEY,
+                                            SecurityGroupIds=[G15_SG_ID.mongo])
 
-# create WEB instance
-webtype = select_instance_type("WEB")
-g15_ins_web = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
-                                      InstanceType=webtype, KeyName=G15_SSH_KEY,
-                                      SecurityGroupIds=[G15_SG_ID.web])
-# create MySQL instance
-mysqltype = select_instance_type("MySQL")
-g15_ins_mysql = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
-                                        InstanceType=mysqltype, KeyName=G15_SSH_KEY,
-                                        SecurityGroupIds=[G15_SG_ID.mysql])
-# create MongoDB instance
-mongotype = select_instance_type("MongoDB")
-g15_ins_mongo = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
-                                        InstanceType=mongotype, KeyName=G15_SSH_KEY,
-                                        SecurityGroupIds=[G15_SG_ID.mongo])
+    store_instance_ip(g15_ins_web[0].id, 'web')
+    store_instance_ip(g15_ins_mysql[0].id, 'mysql')
+    store_instance_ip(g15_ins_mongo[0].id, 'mongo')
 
-store_instance_ip(g15_ins_web[0].id, 'web')
-store_instance_ip(g15_ins_mysql[0].id, 'mysql')
-store_instance_ip(g15_ins_mongo[0].id, 'mongo')
-
-
-send_shfile_exec(G15_INSTANCE["mongo"]["public_ip"],'Mongodb_setup_script.bash')
-
+    print(G15_INSTANCE)
+    p = Pool(2)   # two
+    p.apply_async(send_shfile_exec,args=(G15_INSTANCE["mongo"]["public_ip"],'Mongodb_setup_script.bash',G15_SSH_KEY_PEM,))
+    p.apply_async(send_shfile_exec,args=(G15_INSTANCE["mysql"]["public_ip"],'Mysql_setup_script.bash',G15_SSH_KEY_PEM,))
+    print('Wait for all processes done')
+    p.close()
+    p.join()
