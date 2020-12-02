@@ -119,12 +119,13 @@ if key_not_found:
     key_response = ec2.create_key_pair(KeyName='group15_key')
     print("key has been generated")
 
+instance_type='t1.micro'
 #Create three instances for Mysql, Mongodb and Frontend individually
 Test_Mysql_Instance=ec2.run_instances(
     MaxCount=1,
     MinCount=1,
     ImageId='ami-0f82752aa17ff8f5d',
-    InstanceType='t1.micro',
+    InstanceType=instance_type,
     KeyName='group15_key',
     SecurityGroups=['Mysql instance security group'],
     TagSpecifications=[{'ResourceType': 'instance','Tags': [{'Key': 'name','Value': 'Mysql instance'},]}]
@@ -135,7 +136,7 @@ Test_Mongodb_Instance=ec2.run_instances(
     MaxCount=1,
     MinCount=1,
     ImageId='ami-0f82752aa17ff8f5d',
-    InstanceType='t1.micro',
+    InstanceType=instance_type,
     KeyName='group15_key',
     SecurityGroups=['Mongodb instance security group'],
     TagSpecifications=[{'ResourceType': 'instance','Tags': [{'Key': 'name','Value': 'Mongodb instance'},]}]
@@ -146,7 +147,7 @@ Test_Frontend_Instance=ec2.run_instances(
     MaxCount=1,
     MinCount=1,
     ImageId='ami-0f82752aa17ff8f5d',
-    InstanceType='t1.micro',
+    InstanceType=instance_type,
     KeyName='group15_key',
     SecurityGroups=['Frontend instance security group'],
     TagSpecifications=[{'ResourceType': 'instance','Tags': [{'Key': 'name','Value': 'Frontend instance'},]}]
