@@ -1,6 +1,7 @@
 echo "Installing Mysql on the instance" 
 sudo apt update
-sudo apt install mysql-server
+export DEBIAN_FRONTEND=noninteractive
+sudo -E apt-get -q -y install mysql-server
 sudo apt install unzip
 
 echo "Creating root user and test user and assign root user with password "
