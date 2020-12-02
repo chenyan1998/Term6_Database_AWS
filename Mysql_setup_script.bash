@@ -31,7 +31,7 @@ wget -c https://istd50043.s3-ap-southeast-1.amazonaws.com/kindle-reviews.zip -O 
 echo "Executing SQL commands to create table and unzipping data file"
 unzip kindle-reviews.zip
 echo "Wait for the data to be loaded into table"
-sudo mysql -e '/home/ubuntu/source sql_commands.sql'
+sudo mysql -e 'source /home/ubuntu/sql_commands.sql'
 wait
 
 echo "Finish loading data into Mysql table"

@@ -22,4 +22,5 @@ cd ..
 sudo mv -t /var/www/html frontend/index.* frontend/*.css frontend/*.js
 sudo mv -t /etc/nginx/sites-available/default frontend/nginxdefault
 sudo nginx -s reload
-python3.7 -m uvicorn comm_db:app&
+cd frontend/
+python3.7 -m uvicorn frontend/comm_db:app &

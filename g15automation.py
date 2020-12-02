@@ -262,6 +262,7 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload,pem_string):
 
 def prepare_files():
     # for web
+    global G15_INSTANCE
     for root, dirs, files in os.walk('frontend_template/'):
         for file_name in files:
             content = open(os.path.join(root, file_name),
@@ -311,6 +312,7 @@ if __name__ == "__main__":
     store_instance_ip(g15_ins_mongo[0].id, 'mongo')
 
     print(G15_INSTANCE)
+    prepare_files()
     p = Pool(3)   # two
     p.apply_async(send_shfile_exec, args=(
         G15_INSTANCE["mongo"]["public_ip"], 'Mongodb_setup_script.bash', ["kindle_metadata_final.json","mongo_commands.js"],G15_SSH_KEY_PEM,))
