@@ -17,7 +17,7 @@ sleep 5 #wait for restart to finish
 echo "Downloading kindle metadata"
 #wget -c https://istd50043.s3-ap-southeast-1.amazonaws.com/meta_kindle_store.zip -O meta_kindle_store.zip
 #wget -c https://github.com/chiziheng/ziheng-s-first-repo/blob/main/kindle_metadata_final.zip?raw=true --output-document=kindle_metadata_final.zip
-https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/kindle_metadata_final.json?token=AJT3LRAUS3WKGFQTU56TKES7Y6CGS
+wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/kindle_metadata_final.json?token=AJT3LRAUS3WKGFQTU56TKES7Y6CGS
 
 #echo "Unzipping metadata file"
 #unzip kindle_metadata_final.zip
@@ -31,7 +31,7 @@ mongoimport --db kindle_metadata --collection kindle_metadata --file kindle_meta
 sudo sed -i 's/#security:/security:\n  authorization: enabled/g' /etc/mongod.conf # enable authantication for mongodb
 sudo systemctl restart mongod
 #mongo --eval kindle_metadata 'db.kindle_metadata.remove({title: { $exists: false }})'
-rm -rf kindle_metadata_final.zip mongo_commands.js kindle_metadata_final.json Mongodb_setup_script.sh
+rm -rf mongo_commands.js kindle_metadata_final.json Mongodb_setup_script.sh
 
 echo "MongoDB setup finished"
 
