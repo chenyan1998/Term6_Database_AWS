@@ -23,14 +23,14 @@ wait
 #ps -A|grep mysql
 #sudo pkill mysql
 
-echo "Start downloading sql script and book review data"
-wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/sql_commands.sql?token=AJT3LRAUR7PJX4DEG3JUOX27Y6BPS
+#echo "Start downloading sql script and book review data"
+#wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/sql_commands.sql?token=AJT3LRAUR7PJX4DEG3JUOX27Y6BPS
 wget -c https://istd50043.s3-ap-southeast-1.amazonaws.com/kindle-reviews.zip -O kindle-reviews.zip
 
 echo "Executing SQL commands to create table and unzipping data file"
 unzip kindle-reviews.zip
 echo "Wait for the data to be loaded into table"
-sudo mysql -e 'source sql_commands.sql'
+sudo mysql -e '/home/ubuntu/source sql_commands.sql'
 wait
 
 echo "Finish loading data into Mysql table"
