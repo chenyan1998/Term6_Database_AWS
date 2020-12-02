@@ -1,5 +1,3 @@
-from os import truncate
-from pickle import NONE
 import boto3
 from g15_config import *
 import traceback
@@ -33,7 +31,15 @@ def get_aws_session():
 
 def create_ssh_key():
     try:
-        g15_ssh_key_res = g15ec2.create_key_pair(KeyName=G15_SSH_KEY)
+        if os.path.exists(G15_SSH_KEY):
+            G15_SSH_KEY_PEM = pickle.load(open(G15_SSH_KEY,'rb'))
+            return G15_SSH_KEY_PEM
+        else:
+            g15_ssh_key_res = g15ec2.create_key_pair(KeyName=G15_SSH_KEY)
+            G15_SSH_KEY_PEM = g15_ssh_key_res.key_material
+            fp = open(G15_SSH_KEY,'wb')
+            pickle.dump(G15_SSH_KEY_PEM, fp)
+            fp.close()
     except Exception as e:
         g15_ssh_key_res = e
     return g15_ssh_key_res
@@ -47,7 +53,7 @@ def store_instance_ip(instance_id, instance_name):
         response = list(g15ec2.instances.filter(Filters=filters))
         try:
             pub = response[0].public_ip_address
-            pri = response[0].public_ip_address
+            pri = response[0].private_ip_address
             if pub is not None:
                 G15_INSTANCE[instance_name] = {'id': instance_id,
                                                'public_ip': pub,
@@ -62,13 +68,13 @@ def select_instance_type(ins_name):
     global G15_SELECT_ASK
     if G15_SELECT_ASK == '':
         # initial ask string
-        temp = f'Please select which instance type for {ins_name} (default t2.medium):\n'
+        temp = 'Please select which instance type for {} (default t2.medium):\n'
         for k, v in G15_INSTANCE_TYPE.items():
             temp += f'({k}) {v}\t'
         temp += '\nPlease input an integer index:'
         G15_SELECT_ASK = temp
     while True:
-        selection = input(G15_SELECT_ASK)
+        selection = input(G15_SELECT_ASK.format(ins_name))
         try:
             if selection == '':
                 selection = 3
@@ -192,6 +198,7 @@ def create_security_group():
         traceback.print_exc()
 
 
+
 # initialize session and ec2
 g15session = get_aws_session()
 g15ec2 = g15session.resource('ec2')
@@ -218,9 +225,10 @@ mongotype = select_instance_type("MongoDB")
 g15_ins_mongo = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
                                         InstanceType=mongotype, KeyName=G15_SSH_KEY,
                                         SecurityGroupIds=[G15_SG_ID.mongo])
-# print(g15_ins_mysql[0].id)
-# store_instance_ip(g15_ins_mysql[0].id,'mysql')
 
+store_instance_ip(g15_ins_web[0].id,'web')
 store_instance_ip(g15_ins_mysql[0].id,'mysql')
-store_instance_ip(g15_ins_mysql[0].id,'mysql')
-store_instance_ip(g15_ins_mysql[0].id,'mysql')
+store_instance_ip(g15_ins_mongo[0].id,'mongo')
+
+
+

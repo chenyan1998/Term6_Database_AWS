@@ -31,6 +31,7 @@ aws_secret_access_key=3H1EHFfMs+EK4CdGsc8lZW3NZfn9nmfsiFJurMFb
 aws_session_token=FwoGZXIvYXdzECgaDD7rgtJw9UCineIe7SLOAVomEfwWAByqR76QOPSQcMrpSqqfsLerrCubWFkKCOfrK4qGq7rXRYvu8/FFtuWRZQsP0LPFN3FOzE/T43KzCbeEedZvEoZ6a8OygU7KOh0H36v+itgzMj+Pq1EIW2q8WQnaqvEazlXq79jSbES2WYPjEor4lN9fIZh59zdBUrnSCKG5duWkVwKizGZuaVq8DIjyFUa9j34CS9XWLD03RE335a3Lr3JgTp0LZb3NMrXbpPGsKbcV5nV0YAYHtTR/kP2iV7f6BUskNLCyDiOMKPvjnP4FMi1z9GTmsW4wkrf5v07wd9fGCSr52LS6If4UYA+GIzzlfENaqIJwh/S5dOCXAFY="""
 IMAGEID = "ami-0f82752aa17ff8f5d"
 G15_SSH_KEY = "g15key"
+G15_SSH_KEY_PEM = ""
 G15_SG_WEB = "g15_web_sg"  # WEB security group
 G15_SG_WEB_DESC = "for web"
 G15_SG_MONGO = "g15_mongodb_sg"  # mongodb security group
