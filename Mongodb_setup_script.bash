@@ -17,13 +17,13 @@ sleep 5 #wait for restart to finish
 echo "Downloading kindle metadata"
 #wget -c https://istd50043.s3-ap-southeast-1.amazonaws.com/meta_kindle_store.zip -O meta_kindle_store.zip
 #wget -c https://github.com/chiziheng/ziheng-s-first-repo/blob/main/kindle_metadata_final.zip?raw=true --output-document=kindle_metadata_final.zip
-wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/kindle_metadata_final.json?token=AJT3LRAUS3WKGFQTU56TKES7Y6CGS
+wget --output-document=kindle_metadata_final.json https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/kindle_metadata_final.json?token=AJT3LRAUS3WKGFQTU56TKES7Y6CGS
 
 #echo "Unzipping metadata file"
 #unzip kindle_metadata_final.zip
 
 echo "Downloading mongodb commands and execute"
-wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/mongo_commands.js?token=AJT3LRB3VQ3K3BTUIWZ2FF27Y6B3K
+wget --output-document=mongo_commands.js https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/mongo_commands.js?token=AJT3LRB3VQ3K3BTUIWZ2FF27Y6B3K
 mongo < mongo_commands.js
 
 echo "Importing data in to mongodb"
