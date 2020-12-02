@@ -1,4 +1,4 @@
-while [ ! -f /var/lib/cloud/instance/boot-finished ]; sleep 1; done
+while [ ! -f /var/lib/cloud/instance/boot-finished ]; do sleep 1; done
 sudo apt-get update
 sudo apt install unzip
 
