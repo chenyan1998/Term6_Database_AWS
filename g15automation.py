@@ -1,9 +1,12 @@
+from os import truncate
 import boto3
-from g15_config import *
 import traceback
 import os
 import pickle
 import time
+import paramiko
+from io import StringIO
+from g15_config import *
 
 
 def process_CRED(somecred):
@@ -30,14 +33,15 @@ def get_aws_session():
 
 
 def create_ssh_key():
+    global G15_SSH_KEY_PEM
     try:
         if os.path.exists(G15_SSH_KEY):
-            G15_SSH_KEY_PEM = pickle.load(open(G15_SSH_KEY,'rb'))
+            G15_SSH_KEY_PEM = pickle.load(open(G15_SSH_KEY, 'rb'))
             return G15_SSH_KEY_PEM
         else:
             g15_ssh_key_res = g15ec2.create_key_pair(KeyName=G15_SSH_KEY)
             G15_SSH_KEY_PEM = g15_ssh_key_res.key_material
-            fp = open(G15_SSH_KEY,'wb')
+            fp = open(G15_SSH_KEY, 'wb')
             pickle.dump(G15_SSH_KEY_PEM, fp)
             fp.close()
     except Exception as e:
@@ -136,6 +140,10 @@ def create_security_group():
         res = g15ec2client.authorize_security_group_ingress(GroupId=G15_SG_ID.mongo,
                                                             IpPermissions=[
                                                                 {'IpProtocol': 'tcp',
+                                                                 'FromPort': 22,
+                                                                 'ToPort': 22,
+                                                                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
+                                                                {'IpProtocol': 'tcp',
                                                                  'FromPort': 27017,
                                                                  'ToPort': 27017,
                                                                  'UserIdGroupPairs': [
@@ -153,6 +161,10 @@ def create_security_group():
         # mysql security group
         res = g15ec2client.authorize_security_group_ingress(GroupId=G15_SG_ID.mysql,
                                                             IpPermissions=[
+                                                                {'IpProtocol': 'tcp',
+                                                                 'FromPort': 22,
+                                                                 'ToPort': 22,
+                                                                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
                                                                 {'IpProtocol': 'tcp',
                                                                  'FromPort': 3306,
                                                                  'ToPort': 3306,
@@ -172,6 +184,10 @@ def create_security_group():
         res = g15ec2client.authorize_security_group_ingress(GroupId=G15_SG_ID.hadoop,
                                                             IpPermissions=[
                                                                 {'IpProtocol': 'tcp',
+                                                                 'FromPort': 22,
+                                                                 'ToPort': 22,
+                                                                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
+                                                                {'IpProtocol': 'tcp',
                                                                  'FromPort': 9000,
                                                                  'ToPort': 9000,
                                                                  'UserIdGroupPairs': [
@@ -182,13 +198,22 @@ def create_security_group():
                                                                  ], },
                                                                 {'IpProtocol': 'tcp',
                                                                     'FromPort': 9866,
-                                                                    'ToPort': 9866,
+                                                                    'ToPort': 9867,
                                                                     'UserIdGroupPairs': [
                                                                         {
                                                                             'Description': 'intranet connectivity in hadoop cluster',
                                                                             'GroupId': G15_SG_ID.hadoop,
                                                                         },
                                                                     ], },
+                                                                {'IpProtocol': 'tcp',
+                                                                 'FromPort': 9864,
+                                                                 'ToPort': 9864,
+                                                                 'UserIdGroupPairs': [
+                                                                     {
+                                                                         'Description': 'intranet connectivity in hadoop cluster',
+                                                                         'GroupId': G15_SG_ID.hadoop,
+                                                                     },
+                                                                 ], },
                                                             ])
         #########################################
         fp = open('sg_ids', 'wb')
@@ -196,6 +221,26 @@ def create_security_group():
         fp.close()
     except Exception as e:
         traceback.print_exc()
+
+
+def send_shfile_exec(ip_addr, bash_file_path):
+    ssh_client = paramiko.SSHClient()
+    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    pem_k = paramiko.RSAKey.from_private_key(StringIO(G15_SSH_KEY_PEM))
+    while True:
+        try:
+            ssh_client.connect(hostname=ip_addr, username='ubuntu', pkey=pem_k)
+            break
+        except:
+            pass
+    ssh_client.exec_command("sudo apt update",get_pty=True)
+    sftp_client = ssh_client.open_sftp()
+    sftp_client.put(bash_file_path, f'/home/ubuntu/{bash_file_path}')
+    ssh_client.exec_command(f"sudo chmod +x /home/ubuntu/{bash_file_path}",get_pty=True)
+    stdin, stdout, stderr= ssh_client.exec_command(f'sh /home/ubuntu/{bash_file_path}',get_pty=True)
+    print(stdout.read())
+    sftp_client.close()
+    ssh_client.close()
 
 
 
@@ -226,9 +271,10 @@ g15_ins_mongo = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
                                         InstanceType=mongotype, KeyName=G15_SSH_KEY,
                                         SecurityGroupIds=[G15_SG_ID.mongo])
 
-store_instance_ip(g15_ins_web[0].id,'web')
-store_instance_ip(g15_ins_mysql[0].id,'mysql')
-store_instance_ip(g15_ins_mongo[0].id,'mongo')
+store_instance_ip(g15_ins_web[0].id, 'web')
+store_instance_ip(g15_ins_mysql[0].id, 'mysql')
+store_instance_ip(g15_ins_mongo[0].id, 'mongo')
 
 
+send_shfile_exec(G15_INSTANCE["mongo"]["public_ip"],'Mongodb_setup_script.bash')
 
