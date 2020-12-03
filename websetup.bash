@@ -1,5 +1,7 @@
 while [ ! -f /var/lib/cloud/instance/boot-finished ]; do sleep 1; done
-sudo apt update -y 
+while [ ! -f /var/lib/cloud/instances/i-*/boot-finished ]; do sleep 1; done
+echo "Installing WEB services"
+sudo apt update -y
 sudo apt remove python3 -y
 sudo apt install software-properties-common -y
 sudo add-apt-repository ppa:deadsnakes/ppa -y
@@ -20,4 +22,4 @@ sudo mv frontend/nginxdefault /etc/nginx/sites-available/default
 sudo nginx -s reload
 cd frontend/
 python3.7 -m uvicorn comm_db:app &
-
+echo "Done WEB services installing"

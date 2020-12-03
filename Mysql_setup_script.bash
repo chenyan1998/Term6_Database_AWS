@@ -1,4 +1,5 @@
 while [ ! -f /var/lib/cloud/instance/boot-finished ]; do sleep 1; done
+while [ ! -f /var/lib/cloud/instances/i-*/boot-finished ]; do sleep 1; done
 echo "Installing Mysql on the instance" 
 sudo apt update
 export DEBIAN_FRONTEND=noninteractive

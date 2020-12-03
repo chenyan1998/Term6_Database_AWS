@@ -8,6 +8,7 @@ from io import StringIO
 from multiprocessing import Pool
 import zipfile
 
+
 def process_CRED(somecred):
     """
     Process pasted aws educate CLI credentials from labs.vocareum.com
@@ -247,12 +248,16 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
         print(f'Start executing {bash_file_path}')
         ssh_client.exec_command(
             f"sudo chmod +x /home/ubuntu/{bash_file_path}", get_pty=True)
-        stdin, stdout, stderr = ssh_client.exec_command(
-            f'bash /home/ubuntu/{bash_file_path}', get_pty=True)
+        # TEST
+        # stdin, stdout, stderr = ssh_client.exec_command(
+        #     f'bash /home/ubuntu/{bash_file_path}', get_pty=True)
         # while not stdout.channel.exit_status_ready():
         #     time.sleep(1)
-        for line in iter(stdout.readline, ""):
-            print(f"From {bash_file_path} " + line, end="")
+        for command in open(bash_file_path, 'r', encoding="utf8").readlines():
+            stdin, stdout, stderr = ssh_client.exec_command(
+                command=command, get_pty=True)
+            for line in iter(stdout.readline, ""):
+                print(f"From {bash_file_path} " + line, end="")
         print('done')
         # for line in stdout.read().splitlines():
         #     print(line)
