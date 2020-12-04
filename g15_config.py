@@ -8,27 +8,9 @@ class sg_ids:
         self.hadoop = ''
 
 
-class ips:
-    def __init__(self, ins_id='',pri='', pub=''):
-        self.id = ins_id
-        self.private = pri
-        self.public = pub
-
-
-class instances:
-    def __init__(self, num_datanodes):
-        self.web = ips()
-        self.mysql = ips()
-        self.mongo = ips()
-        self.namenode = ips()
-        self.datanodes = []
-        for _ in range(num_datanodes):
-            self.datanodes.append(ips())
-
-
-CRED = """aws_access_key_id=ASIAQ6R4KCM7YQDUCXVX
-aws_secret_access_key=Bwt52jGnbtQEu4rVD7lXNhxJsdyHz+nmD1PtUmRC
-aws_session_token=FwoGZXIvYXdzEFcaDL6iBNJFsejub6bbXCLOAYLJmsjWow4moct9Ybk9aE5LNpzyjjrFLVckfTq/h1eRyl3wNZ+9wWLm9+5wPtLQuUNzZOSUpWXQwyoB5lHv/mgpwGsxIxYF+i8F7xouR9FwoPGtL6lD1KWbHeQ5vjn0cuEikLSKLXUvWrs1QNIaM2bSMFoc6qRh6RzIoQ7W+27Y4Hx/C0FN/e/dXO2W0HmLtRyUc8cAkqPZStv1ut3TBqVnSU49AVVCURIH8q1+dSbBs9XTu8KEl2IWPDoQZQQfy1nshG7OwgLiQPUsMkmWKK6Hp/4FMi2iL7Gt12iVZnqVRi8QQf994mO7tNjmISdlIb9DOxTJmkI0ANJE1EYjbP2YxPg="""
+CRED = """aws_access_key_id=ASIAQ6R4KCM7RJJDAABV
+aws_secret_access_key=CdFxUlN0Wh+V5DS+Vigct+cm4ElDl0L8ohfZmame
+aws_session_token=FwoGZXIvYXdzEFsaDPct/LdLkOFjp/ulVCLOAdmajZicCUv47YrNV0fYRz1nZet4GNAg6yHZ1+TmDUStYPuXmnL5njz3c56J8scEhw9WBy+xFfekwBRA8KnL/rp8kdNNZqDntLVnsEdxbDd9IkUuYTfLUyPYsmsnCoRUcICGwyAmMvKjDqSYxLiw90+zUBXYcVpPpSTqkDZJHtycQueBG627ZIXMA1lAnNBuy5Cxpjj1YdlSo96NjllF3ot/DNVW3CTGwv2MEJdKgsNxmypOEwmZgLa8I8Y0F7RBBqVlMpBvuMwhnI6ni5m9KNmCqP4FMi2lDRWleOYYrNLcBndA4VpmSGALmblrE5QIyRzHEIvqA/j4/2hXSDoIDw+eM+I="""
 IMAGEID = "ami-0f82752aa17ff8f5d"
 G15_SSH_KEY = "g15key"
 G15_SSH_KEY_PEM = ""
