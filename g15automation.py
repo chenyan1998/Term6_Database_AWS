@@ -246,7 +246,7 @@ def create_security_group():
         traceback.print_exc()
 
 
-def web_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
+def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
     while True:
         try:
             ssh_client = paramiko.SSHClient()
@@ -269,6 +269,7 @@ def web_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
                     file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
             # other connections wait for Mongo to upload file
             if 'mongo' in bash_file_path.split("/")[-1]:
+                sftp_client.get('home/ubuntu/.ssh/authorized_keys', 'g15pubkey')
                 fp = open('closesftp', 'w')
                 fp.close()
             while True:
@@ -291,6 +292,7 @@ def web_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
         except:
             traceback.print_exc()
 
+# TEST
 def hadoop_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string, node):
     while True:
         try:
@@ -312,12 +314,11 @@ def hadoop_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string
             for file_path in files_to_upload:
                 sftp_client.put(
                     file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
-            # other connections wait for Mongo to upload file
-            if 'name' in node:
-                sftp_client.get('home/ubuntu/.ssh/authorized_keys', 'g15pubkey')
             while True:
                 if os.path.exists("closesftp"):
                     time.sleep(2)
+                    sftp_client.put(G15_SSH_PUBKEY,'/home/ubuntu/.ssh/authorized_keys')
+                    sftp_client.put(G15_SSH_KEY,'/home/ubuntu/.ssh/id_rsa')
                     sftp_client.close()
                     break
                 time.sleep(2)
