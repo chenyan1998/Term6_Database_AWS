@@ -70,7 +70,7 @@ class PearsonCorrelationCompute:
 if __name__=="__main__":
     hdfs_nn = "172.31.67.32"
     metadata_path = "hdfs://%s:9000/input/pcc/kindle_metadata.json" % (hdfs_nn)
-    reviews_path  ="hdfs://%s:9000/input/pcc/kindle_reviews.csv" % (hdfs_nn)
+    reviews_path  ="hdfs://%s:9000/user/hadoop/Reviews/part-m-00000" % (hdfs_nn)
     pcc = PearsonCorrelationCompute()
     pearson_correlation = pcc.get_pearson_correlation(metadata_path, reviews_path)
 
