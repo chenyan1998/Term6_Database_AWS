@@ -1,4 +1,4 @@
-const BASEURL = "http://3.238.228.96/api";
+const BASEURL = "http://54.80.123.68/api";
 var HAS_REVIEW;
 
 var Main = {

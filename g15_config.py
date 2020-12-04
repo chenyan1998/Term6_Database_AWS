@@ -26,9 +26,9 @@ class instances:
             self.datanodes.append(ips())
 
 
-CRED = """aws_access_key_id=ASIAQ6R4KCM7Z2J66SHY
-aws_secret_access_key=QXvs3ed86n40iTL8Kn+CjmNudCJLFlcqCqNrP7ZY
-aws_session_token=FwoGZXIvYXdzED0aDGhw+qCsecjMh0FRDiLOAQK7hamusd/YzPS9elenBu7DeWhFENwvLSyDRXjE4ke1y3bS4GgLVPIruYHxP82h8c3ytlHGNRrlZtr8RkPUGg2568ulCZm3uzPNQfF7qwL7SmPbfA8kFJVuZVXAXiHTU+cMPkZVx/wGEOoCkCrEOQvK1eE/llH+QDHtwWoziVdp5vVA4KDmG/otrepZepw/1pDP5Hez2NkkNpZcvmZSIBQ6jl6J9UA5iGV52aIV0TLhf9MEGNCRgvmAREXfHghtvpLgq5jzs4ivRcsXt953KLexof4FMi1UKoO2ZEv4yzbttHIYmtJ/J8heY9Mf7xmM42NWY+ruDdA1NlP1TGGnBm+SxhU="""
+CRED = """aws_access_key_id=ASIAQ6R4KCM7YQDUCXVX
+aws_secret_access_key=Bwt52jGnbtQEu4rVD7lXNhxJsdyHz+nmD1PtUmRC
+aws_session_token=FwoGZXIvYXdzEFcaDL6iBNJFsejub6bbXCLOAYLJmsjWow4moct9Ybk9aE5LNpzyjjrFLVckfTq/h1eRyl3wNZ+9wWLm9+5wPtLQuUNzZOSUpWXQwyoB5lHv/mgpwGsxIxYF+i8F7xouR9FwoPGtL6lD1KWbHeQ5vjn0cuEikLSKLXUvWrs1QNIaM2bSMFoc6qRh6RzIoQ7W+27Y4Hx/C0FN/e/dXO2W0HmLtRyUc8cAkqPZStv1ut3TBqVnSU49AVVCURIH8q1+dSbBs9XTu8KEl2IWPDoQZQQfy1nshG7OwgLiQPUsMkmWKK6Hp/4FMi2iL7Gt12iVZnqVRi8QQf994mO7tNjmISdlIb9DOxTJmkI0ANJE1EYjbP2YxPg="""
 IMAGEID = "ami-0f82752aa17ff8f5d"
 G15_SSH_KEY = "g15key"
 G15_SSH_KEY_PEM = ""

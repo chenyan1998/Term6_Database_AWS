@@ -63,7 +63,7 @@ def mongo_fetch_all(cur):
         result.append(i)
     return result
 
-@app.get("/readreview/")
+@app.get("/api/readreview/")
 def read_review(asin: str='', reviewerID:str=''):
     session = DBSession()
     if asin and reviewerID:
@@ -75,7 +75,7 @@ def read_review(asin: str='', reviewerID:str=''):
     session.close()
     return reviews
 
-@app.get("/addreview/")
+@app.get("/api/addreview/")
 def add_review(asin: str='', reviewerID:str='',content:str=''):
     # global CURRENT_REVIEW_IDX
     # CURRENT_REVIEW_IDX += 1
@@ -87,7 +87,7 @@ def add_review(asin: str='', reviewerID:str='',content:str=''):
     session.close()
     return {'success':True}
 
-@app.get('/readbook/')
+@app.get('/api/readbook/')
 def read_book(author:str='',title:str='',category='',offset:int=0,batch=50):
     if author and title:
         result = mongo_fetch_all(mongodb_col.find({'author':f'/{author}/','title':f'/{title}/'},{'_id':0},skip=offset,limit=batch))
@@ -100,7 +100,7 @@ def read_book(author:str='',title:str='',category='',offset:int=0,batch=50):
         result = mongo_fetch_all(mongodb_col.find({'title':{'$regex': f".*{title}.*", '$options': 'i'}},{'_id':0},skip=offset,limit=batch))
     return result
 
-@app.get('/addbook/')
+@app.get('/api/addbook/')
 def add_book(author:str='',title:str='',asin:str='',description:str='',imUrl:str='',price:str=''):
     mongodb_col.insert({'title':title,'asin':asin,'description':description,'imUrl':imUrl,'price':price})
     return {'success':True}

@@ -1,6 +1,6 @@
 # define parameters in mysql and mongodb
 # MySql
-MYSQL_IP = '172.31.67.184'
+MYSQL_IP = '172.31.36.70'
 MYSQL_PORT = '3306'
 MYSQL_USERNAME = 'root'
 MYSQL_PASSWORD = '&V]xM);}^$ts&9U-hC[C'
@@ -9,7 +9,7 @@ MYSQL_TABLE = 'Reviews'
 
 
 # MongoDB
-MONGODB_IP = '172.31.73.251'
+MONGODB_IP = '172.31.39.44'
 # MONGODB_PORT =
 MONGODB_USERNAME = 'test_user'
 MONGODB_PASSWORD = 'test_user'
