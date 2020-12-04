@@ -201,6 +201,7 @@ python3.7 -m pip install pyspark numpy
 export PYSPARK_PYTHON=/usr/bin/python3.7
 export PYSPARK_DRIVER_PYTHON=/usr/bin/python3.7
 
+# start analytics
 # to find a way to wait all datanodes live
 sudo -u hadoop /opt/hadoop-3.3.0/sbin/start-dfs.sh && sudo -u hadoop /opt/hadoop-3.3.0/sbin/start-yarn.sh
 sudo mongoexport --collection=kindle_metadata --out=/home/hadoop/projectData/kindle_metadata.json 'mongodb://34.202.163.148/kindle_metadata' -u test_user -p test_user
@@ -213,5 +214,4 @@ sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs dfs -put /home/hadoop/projectData/kind
 #running code command skip take in namenode's private
 sudo -u hadoop python3.7 pearson_corr.py
 sudo -u hadoop python3.7 tfidf.py
-
 sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs dfs -get /output/reviews_tfidf_dir

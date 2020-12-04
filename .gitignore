@@ -6,3 +6,8 @@ test.py
 closesftp
 g15key*
 sg_ids
+namenode.bash
+datanode*.bash
+test_*.py
+*.log
+instance_config
