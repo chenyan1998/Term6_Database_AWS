@@ -1,4 +1,3 @@
-#cloud-boothook
 #!/bin/bash
 while [ ! -f /var/lib/cloud/instance/boot-finished ]; do sleep 1; done
 while [ ! -f /var/lib/cloud/instances/i-*/boot-finished ]; do sleep 1; done
@@ -22,18 +21,11 @@ sudo systemctl stop mysql
 sudo sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mysql/mysql.conf.d/mysqld.cnf 
 sudo systemctl restart mysql
 wait
-#systemctl status mysql.service
-#sudo service mysql restart
-#ps -A|grep mysql
-#sudo pkill mysql
 
-#echo "Start downloading sql script and book review data"
-#wget https://raw.githubusercontent.com/chenyan1998/50043.DataBase_And_BigData/main/sql_commands.sql?token=AJT3LRAUR7PJX4DEG3JUOX27Y6BPS
 wget -c https://istd50043.s3-ap-southeast-1.amazonaws.com/kindle-reviews.zip -O kindle-reviews.zip
 
 echo "Executing SQL commands to create table and unzipping data file"
 unzip kindle-reviews.zip
-while [ ! -f /home/ubuntu/done* ]; do sleep 1 && echo "test"; done
 echo "Wait for the data to be loaded into table"
 sudo mysql -e 'source /home/ubuntu/sql_commands.sql'
 wait

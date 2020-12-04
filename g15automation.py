@@ -334,11 +334,11 @@ if __name__ == "__main__":
         pass
     p = Pool(3)   # two
     p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["mongo"]["public_ip"], 'Mongodb_setup_script.bash', ['done1', "kindle_metadata_final.zip", "mongo_commands.js"], G15_SSH_KEY_PEM,))
+        G15_INSTANCE["mongo"]["public_ip"], 'mongo/mongo.bash', ["mongo/kindle_metadata_final.zip", "mongo/mongo_commands.js"], G15_SSH_KEY_PEM,))
     p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["mysql"]["public_ip"], 'Mysql_setup_script.bash', ['done2', "sql_commands.sql"], G15_SSH_KEY_PEM,))
+        G15_INSTANCE["mysql"]["public_ip"], 'mysql/mysql.bash', ["mysql/sql_commands.sql"], G15_SSH_KEY_PEM,))
     p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["web"]["public_ip"], 'websetup.bash', ['done3', "frontend.zip"], G15_SSH_KEY_PEM,))
+        G15_INSTANCE["web"]["public_ip"], 'frontend_template/web.bash', ["frontend.zip"], G15_SSH_KEY_PEM,))
     print('Wait for all processes done')
     p.close()
     p.join()

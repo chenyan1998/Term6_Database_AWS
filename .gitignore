@@ -1,2 +1,8 @@
 html/
 __pycache__/
+frontend/
+*.zip
+test.py
+closesftp
+g15key*
+sg_ids

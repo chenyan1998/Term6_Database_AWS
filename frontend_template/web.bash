@@ -17,7 +17,6 @@ rm get-pip.py -f
 python3.7 -m pip install fastapi uvicorn sqlalchemy pymongo pymysql
 sudo apt install nginx -y
 sudo apt install unzip -y
-while [ ! -f /home/ubuntu/done* ]; do sleep 1; done
 unzip frontend.zip
 sudo mv -t /var/www/html frontend/index.* frontend/*.css frontend/*.js
 sudo mv frontend/nginxdefault /etc/nginx/sites-available/default
