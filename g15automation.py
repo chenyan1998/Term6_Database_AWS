@@ -5,7 +5,7 @@ import pickle
 import time
 import paramiko
 from io import StringIO
-from multiprocessing import Pool
+from multiprocessing import Process
 import zipfile
 import logging
 
@@ -48,13 +48,13 @@ def create_ssh_key():
     global G15_SSH_KEY
     try:
         if os.path.exists(G15_SSH_KEY):
-            G15_SSH_KEY_PEM = pickle.load(open(G15_SSH_KEY, 'rb'))
+            G15_SSH_KEY_PEM = open(G15_SSH_KEY,'r',encoding="utf8").read()
             return G15_SSH_KEY_PEM
         else:
             g15_ssh_key_res = g15ec2.create_key_pair(KeyName=G15_SSH_KEY)
             G15_SSH_KEY_PEM = g15_ssh_key_res.key_material
-            fp = open(G15_SSH_KEY, 'wb')
-            pickle.dump(G15_SSH_KEY_PEM, fp)
+            fp = open(G15_SSH_KEY, 'w',encoding="utf8")
+            fp.write(G15_SSH_KEY_PEM)
             fp.close()
     except Exception as e:
         g15_ssh_key_res = e
@@ -262,14 +262,17 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
             print(
                 f'Start executing {bash_file_path.split("/")[-1]} upload files')
             sftp_client = ssh_client.open_sftp()
+            if 'name' in bash_file_path.split("/")[-1]:
+                sftp_client.get(
+                    '/home/ubuntu/.ssh/authorized_keys', 'g15pubkey')
             sftp_client.put(
                 bash_file_path, f'/home/ubuntu/{bash_file_path.split("/")[-1]}')
             for file_path in files_to_upload:
                 sftp_client.put(
                     file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
             # other connections wait for Mongo to upload file
-            if 'mongo' in bash_file_path.split("/")[-1]:
-                sftp_client.get('home/ubuntu/.ssh/authorized_keys', 'g15pubkey')
+            # TEST
+            if 'mongo' or 'name' in bash_file_path.split("/")[-1]:
                 fp = open('closesftp', 'w')
                 fp.close()
             while True:
@@ -290,9 +293,15 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
             print(f'done {bash_file_path.split("/")[-1]}')
             break
         except:
+            try:
+                pass
+            except:
+                pass
             traceback.print_exc()
 
 # TEST
+
+
 def hadoop_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string, node):
     while True:
         try:
@@ -317,8 +326,9 @@ def hadoop_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string
             while True:
                 if os.path.exists("closesftp"):
                     time.sleep(2)
-                    sftp_client.put(G15_SSH_PUBKEY,'/home/ubuntu/.ssh/authorized_keys')
-                    sftp_client.put(G15_SSH_KEY,'/home/ubuntu/.ssh/id_rsa')
+                    sftp_client.put(
+                        G15_SSH_PUBKEY, '/home/ubuntu/.ssh/authorized_keys')
+                    sftp_client.put(G15_SSH_KEY, '/home/ubuntu/.ssh/id_rsa')
                     sftp_client.close()
                     break
                 time.sleep(2)
@@ -360,7 +370,34 @@ def prepare_files(option):
         tarZip.close()
         return
     else:
-        pass
+        hosts = ''
+        workers = ''
+        namenodepriip = G15_INSTANCE["namenode"]["private_ip"]
+        for k, v in G15_INSTANCE.items():
+            if 'node' in k:
+                hosts += f'echo "{v["private_ip"]} com.g15.{k}" | sudo tee -a  /etc/hosts\n'
+                if 'data' in k:
+                    workers += f'com.g15.{k} '
+        workers = workers[:-1]
+        namenode_bash = open('hadoop_template/namenode.bash',
+                             'r', encoding="utf8").read()
+        with open('namenode.bash', 'w', encoding="utf8",newline='\n') as f:
+            namenode_bash = namenode_bash.replace('[[hosts]]', hosts)
+            namenode_bash = namenode_bash.replace('[[workers]]', workers)
+            namenode_bash = namenode_bash.replace(
+                '[[namenodepriip]]', namenodepriip)
+            f.write(namenode_bash)
+        datanode_bash = open('hadoop_template/datanode.bash',
+                             'r', encoding="utf8").read()
+        for k, v in G15_INSTANCE.items():
+            if 'datanode' in k:
+                with open(f'{k}.bash', 'w', encoding="utf8",newline="\n") as f:
+                    temp = datanode_bash
+                    temp = temp.replace('[[hosts]]', hosts)
+                    temp = temp.replace('[[workers]]', workers)
+                    temp = temp.replace('[[namenodepriip]]', namenodepriip)
+                    temp = temp.replace('[[whichdatanode]]', k)
+                    f.write(temp)
 
 
 def select_operation(option):
@@ -397,6 +434,10 @@ def select_operation(option):
 
 
 def initialize():
+    try:
+        os.remove('closesftp')
+    except:
+        pass
     # initialized ssh key
     create_ssh_key()
 
@@ -410,6 +451,7 @@ def initialize():
 
 def launch_web_db():
     # create MongoDB instance
+    global jobs
     mongotype = select_instance_type("MongoDB")
     g15_ins_mongo = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
                                             InstanceType=mongotype, KeyName=G15_SSH_KEY,
@@ -438,23 +480,12 @@ def launch_web_db():
     prepare_files('web')
 
     # executing commands
-    try:
-        os.remove('closesftp')
-    except:
-        pass
-    p = Pool(3)   # two
-    p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["mongo"]["public_ip"], 'mongo/mongo.bash', ["mongo/kindle_metadata_final.zip", "mongo/mongo_commands.js"], G15_SSH_KEY_PEM,))
-    p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["mysql"]["public_ip"], 'mysql/mysql.bash', ["mysql/sql_commands.sql"], G15_SSH_KEY_PEM,))
-    p.apply_async(send_shfile_exec, args=(
-        G15_INSTANCE["web"]["public_ip"], 'frontend_template/web.bash', ["frontend.zip"], G15_SSH_KEY_PEM,))
-    print('Wait for all processes done')
-    p.close()
-    p.join()
-
-    # send_shfile_exec( G15_INSTANCE["mysql"]["public_ip"], 'Mysql_setup_script.bash', ["sql_commands.sql"], G15_SSH_KEY_PEM)
-    print(f'You can visit http://{G15_INSTANCE["web"]["public_ip"]}')
+    jobs.append(Process(target=send_shfile_exec, args=(
+        G15_INSTANCE["mongo"]["public_ip"], 'mongo/mongo.bash', ["mongo/kindle_metadata_final.zip", "mongo/mongo_commands.js"], G15_SSH_KEY_PEM,)))
+    jobs.append(Process(target=send_shfile_exec, args=(
+        G15_INSTANCE["mysql"]["public_ip"], 'mysql/mysql.bash', ["mysql/sql_commands.sql"], G15_SSH_KEY_PEM,)))
+    jobs.append(Process(target=send_shfile_exec, args=(
+        G15_INSTANCE["web"]["public_ip"], 'frontend_template/web.bash', ["frontend.zip"], G15_SSH_KEY_PEM,)))
 
 
 def destroy_hadoop():
@@ -503,8 +534,14 @@ def launch_hadoop(n_datanodes):
         count += 1
     del count
     instance_config('store')
-
+    prepare_files('hadoop')
     # execute task
+    jobs.append(Process(target=send_shfile_exec, args=(
+        G15_INSTANCE["namenode"]["public_ip"], 'namenode.bash', [G15_SSH_KEY, G15_SSH_PUBKEY,'mongo/kindle_metadata_final.zip'], G15_SSH_KEY_PEM,)))
+    for k, v in G15_INSTANCE.items():
+        if 'datanode' in k:
+            jobs.append(Process(target=send_shfile_exec, args=(
+                G15_INSTANCE[k]["public_ip"], f'{k}.bash', [G15_SSH_KEY, G15_SSH_PUBKEY], G15_SSH_KEY_PEM,)))
 
 
 if __name__ == "__main__":
@@ -514,6 +551,7 @@ if __name__ == "__main__":
     g15ec2 = g15session.resource('ec2')
     g15ec2client = g15session.client('ec2')
     initialize()
+    jobs = []
     if select_operation('web'):
         logging.info("Setting up WEB and database.")
         launch_web_db()
@@ -522,3 +560,8 @@ if __name__ == "__main__":
         logging.info("Setting up hadoop cluster.")
         launch_hadoop(number_datanodes)
     print(G15_INSTANCE)
+    for job in jobs:
+        job.start()
+    for job in jobs:
+        job.join()
+    print('done')

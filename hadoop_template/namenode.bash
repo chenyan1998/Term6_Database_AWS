@@ -3,14 +3,18 @@ while [ ! -f /var/lib/cloud/instance/boot-finished ]; do sleep 1; done
 while [ ! -f /var/lib/cloud/instances/i-*/boot-finished ]; do sleep 1; done
 sudo apt update -y
 sudo apt install ssh -y
-echo "172.31.70.117 com.g15.namenode" | sudo tee -a  /etc/hosts
-echo "172.31.65.48 com.g15.datanode1" | sudo tee -a  /etc/hosts
+# echo "172.31.70.117 com.g15.namenode" | sudo tee -a  /etc/hosts
+# echo "172.31.65.48 com.g15.datanode1" | sudo tee -a  /etc/hosts
+[[hosts]]
 sudo hostnamectl set-hostname com.g15.namenode
 sudo adduser --disabled-password  --gecos '' hadoop
 sudo sh -c 'echo "hadoop ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-hadoop'
 sudo sysctl vm.swappiness=10
 # sudo su - hadoop
 sudo -u hadoop mkdir /home/hadoop/.ssh
+# sudo cp /home/ubuntu/g15pubkey /home/ubuntu/.ssh/authorized_keys
+sudo cp /home/ubuntu/g15key /home/ubuntu/.ssh/id_rsa
+sudo chown ubuntu:ubuntu /home/ubuntu/.ssh/id_rsa
 sudo -u hadoop sudo cp /home/ubuntu/.ssh/authorized_keys /home/hadoop/.ssh/authorized_keys
 sudo -u hadoop sudo cp /home/ubuntu/.ssh/id_rsa /home/hadoop/.ssh/id_rsa
 sudo -u hadoop sudo chmod 600 /home/ubuntu/.ssh/id_rsa
@@ -28,7 +32,7 @@ export JH="\/usr\/lib\/jvm\/java-8-openjdk-amd64"
 sudo -u hadoop sed -i "s/# export JAVA_HOME=.*/export\ JAVA_HOME=${JH}/g" /home/hadoop/download/hadoop-3.3.0/etc/hadoop/hadoop-env.sh
 
 MASTER=com.g15.namenode
-WORKERS="com.g15.datanode1"
+WORKERS="[[workers]]"
 
 sudo -u hadoop echo -e "<?xml version=\"1.0\"?>
 <?xml-stylesheet type=\"text/xsl\" href=\"configuration.xsl\"?>
@@ -94,7 +98,7 @@ sudo -u hadoop echo -e "<?xml version=\"1.0\"?>
 <\x21-- Site specific YARN configuration properties -->
 <property>
 <name>mapreduce.job.tracker</name>
-<value>hdfs://172.31.76.79:8001</value>
+<value>hdfs://[[namenodepriip]]:8001</value>
 <final>true</final>
 </property>
 <property>
@@ -119,7 +123,7 @@ sudo -u hadoop sudo mv /home/hadoop/download/hadoop-3.3.0 /opt/
 
 sudo -u hadoop sudo mkdir -p /mnt/hadoop/namenode/hadoop-${USER}
 sudo -u hadoop sudo chown -R hadoop:hadoop /mnt/hadoop/namenode
-sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs namenode -format -y
+yes | sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs namenode -format
 
 # sudo -u hadoop /opt/hadoop-3.3.0/sbin/start-dfs.sh && sudo -u hadoop /opt/hadoop-3.3.0/sbin/start-yarn.sh
 
@@ -151,15 +155,14 @@ sudo chown -R hadoop /opt/sqoop-1.4.7/
 # mongo
 wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
 echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-
+sudo apt update
 sudo apt install -y mongodb-org
 sudo systemctl start mongod
-sudo systemctl status mongod
 
 # spark
 sudo -u hadoop wget --directory-prefix=/home/hadoop/download/ wget http://mirror.cogentco.com/pub/apache/spark/spark-3.0.1/spark-3.0.1-bin-hadoop3.2.tgz
 
-sudo -u hadoop tar zxf /home/hadoop/download/spark-3.0.1-bin-hadoop3.2.tgz
+sudo -u hadoop tar zxf /home/hadoop/download/spark-3.0.1-bin-hadoop3.2.tgz -C /home/hadoop/download
 
 sudo -u hadoop cp /home/hadoop/download/spark-3.0.1-bin-hadoop3.2/conf/spark-env.sh.template /home/hadoop/download/spark-3.0.1-bin-hadoop3.2/conf/spark-env.sh
 
@@ -183,7 +186,6 @@ done
 sudo mv /home/hadoop/download/spark-3.0.1-bin-hadoop3.2 /opt/
 sudo chown -R hadoop:hadoop /opt/spark-3.0.1-bin-hadoop3.2
 
-
 # install python
 sudo apt remove python3 -y
 sudo apt install software-properties-common -y
@@ -200,18 +202,3 @@ rm get-pip.py -f
 python3.7 -m pip install pyspark numpy
 export PYSPARK_PYTHON=/usr/bin/python3.7
 export PYSPARK_DRIVER_PYTHON=/usr/bin/python3.7
-
-# start analytics
-# to find a way to wait all datanodes live
-sudo -u hadoop /opt/hadoop-3.3.0/sbin/start-dfs.sh && sudo -u hadoop /opt/hadoop-3.3.0/sbin/start-yarn.sh
-sudo mongoexport --collection=kindle_metadata --out=/home/hadoop/projectData/kindle_metadata.json 'mongodb://34.202.163.148/kindle_metadata' -u test_user -p test_user
-/opt/sqoop-1.4.7/bin/sqoop import --bindir /opt/sqoop-1.4.7/lib/ --connect jdbc:mysql://54.165.138.26/kindle_reviews?useSSL=false --table Reviews --username root --password '&V]xM);}^$ts&9U-hC[C'
-
-sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs dfs -mkdir -p /input/pcc/
-sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs dfs -mkdir -p /output/
-sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs dfs -put /home/hadoop/projectData/kindle_metadata.json /input/pcc/
-
-#running code command skip take in namenode's private
-sudo -u hadoop python3.7 pearson_corr.py
-sudo -u hadoop python3.7 tfidf.py
-sudo -u hadoop /opt/hadoop-3.3.0/bin/hdfs dfs -get /output/reviews_tfidf_dir

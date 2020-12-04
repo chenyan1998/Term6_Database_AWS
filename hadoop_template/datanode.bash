@@ -3,14 +3,15 @@ while [ ! -f /var/lib/cloud/instance/boot-finished ]; do sleep 1; done
 while [ ! -f /var/lib/cloud/instances/i-*/boot-finished ]; do sleep 1; done
 sudo apt update -y
 sudo apt install ssh -y
-echo "172.31.70.117 com.g15.namenode" | sudo tee -a  /etc/hosts
-echo "172.31.65.48 com.g15.datanode1" | sudo tee -a  /etc/hosts
-sudo hostnamectl set-hostname com.g15.namenode
+[[hosts]]
+sudo hostnamectl set-hostname com.g15.[[whichdatanode]]
 sudo adduser --disabled-password  --gecos '' hadoop
 sudo sh -c 'echo "hadoop ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-hadoop'
 sudo sysctl vm.swappiness=10
 # sudo su - hadoop
 sudo -u hadoop mkdir /home/hadoop/.ssh
+sudo cp /home/ubuntu/g15key /home/ubuntu/.ssh/id_rsa
+sudo chown ubuntu:ubuntu /home/ubuntu/.ssh/id_rsa
 sudo -u hadoop sudo cp /home/ubuntu/.ssh/authorized_keys /home/hadoop/.ssh/authorized_keys
 sudo -u hadoop sudo cp /home/ubuntu/.ssh/id_rsa /home/hadoop/.ssh/id_rsa
 sudo -u hadoop sudo chmod 600 /home/ubuntu/.ssh/id_rsa
@@ -28,7 +29,7 @@ export JH="\/usr\/lib\/jvm\/java-8-openjdk-amd64"
 sudo -u hadoop sed -i "s/# export JAVA_HOME=.*/export\ JAVA_HOME=${JH}/g" /home/hadoop/download/hadoop-3.3.0/etc/hadoop/hadoop-env.sh
 
 MASTER=com.g15.namenode
-WORKERS="com.g15.datanode1"
+WORKERS=[[workers]]
 
 sudo -u hadoop echo -e "<?xml version=\"1.0\"?>
 <?xml-stylesheet type=\"text/xsl\" href=\"configuration.xsl\"?>
@@ -94,7 +95,7 @@ sudo -u hadoop echo -e "<?xml version=\"1.0\"?>
 <\x21-- Site specific YARN configuration properties -->
 <property>
 <name>mapreduce.job.tracker</name>
-<value>hdfs://172.31.76.79:8001</value>
+<value>hdfs://[[namenodepriip]]:8001</value>
 <final>true</final>
 </property>
 <property>
@@ -119,3 +120,30 @@ sudo -u hadoop sudo mv /home/hadoop/download/hadoop-3.3.0 /opt/
 
 sudo -u hadoop sudo mkdir -p /mnt/hadoop/datanode/
 sudo chown -R hadoop:hadoop /mnt/hadoop/datanode/
+
+
+# spark
+sudo -u hadoop wget --directory-prefix=/home/hadoop/download/ wget http://mirror.cogentco.com/pub/apache/spark/spark-3.0.1/spark-3.0.1-bin-hadoop3.2.tgz
+
+sudo -u hadoop tar zxf /home/hadoop/download/spark-3.0.1-bin-hadoop3.2.tgz -C /home/hadoop/download
+sudo -u hadoop cp /home/hadoop/download/spark-3.0.1-bin-hadoop3.2/conf/spark-env.sh.template /home/hadoop/download/spark-3.0.1-bin-hadoop3.2/conf/spark-env.sh
+
+sudo -u hadoop echo -e "
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export HADOOP_HOME=/opt/hadoop-3.3.0
+export SPARK_HOME=/opt/spark-3.0.1-bin-hadoop3.2
+export SPARK_CONF_DIR=\${SPARK_HOME}/conf
+export HADOOP_CONF_DIR=\${HADOOP_HOME}/etc/hadoop
+export YARN_CONF_DIR=\${HADOOP_HOME}/etc/hadoop
+export SPARK_EXECUTOR_CORES=1
+export SPARK_EXECUTOR_MEMORY=2G
+export SPARK_DRIVER_MEMORY=1G
+export PYSPARK_PYTHON=python3
+" | sudo -u hadoop tee -a /home/hadoop/download/spark-3.0.1-bin-hadoop3.2/conf/spark-env.sh
+
+for ip in ${WORKERS};
+do sudo -u hadoop echo -e "${ip}" | sudo -u hadoop tee -a /home/hadoop/download/spark-3.0.1-bin-hadoop3.2/conf/slaves;
+done
+
+sudo mv /home/hadoop/download/spark-3.0.1-bin-hadoop3.2 /opt/
+sudo chown -R hadoop:hadoop /opt/spark-3.0.1-bin-hadoop3.2
