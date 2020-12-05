@@ -22,7 +22,9 @@
         <button v-on:click="addBook">Add a book</button>
         <span class="search_info"></span>
         <span class="result_conut"></span>
-        <button v-show="showNextPage" v-on:click='loadNextPage'>Next Page</button>
+        <button v-show="showNextPage" v-on:click="loadNextPage">
+          Next Page
+        </button>
       </div>
       <template>
         <div>
@@ -46,7 +48,7 @@
               >
             </vxe-table-column>
             <vxe-table-column field="imUrl" title="image" width="200">
-              <template v-slot="{ row }" >
+              <template v-slot="{ row }">
                 <img
                   v-if="row.imUrl&&row.imUrl.toString().indexOf('http')!=-1"
                   :src="row.imUrl"
@@ -64,15 +66,11 @@
                 </ul>
               </template></vxe-table-column
             >
-            <vxe-table-column
-              field="description"
-              title="Description"
-              sortable
-            ><template v-slot="{ row }" >
-              <div>{{decodeHtml(row.description)}}</div>
-              </template
-          >
-          </vxe-table-column>
+            <vxe-table-column field="description" title="Description" sortable
+              ><template v-slot="{ row }">
+                <div>{{decodeHtml(row.description)}}</div>
+              </template>
+            </vxe-table-column>
             <vxe-table-column
               field="price"
               title="Price in $"
@@ -105,12 +103,17 @@
                 <vxe-table-column field="label" width="25%"></vxe-table-column>
                 <vxe-table-column field="value">
                   <template v-slot="{ row }">
-                    <span v-if='row.value&&row.value.toString().indexOf("http")!=-1'>
+                    <span
+                      v-if='row.value&&row.value.toString().indexOf("http")!=-1'
+                    >
                       <img
                         :src="row.value"
                         style="max-width: 182px; max-height: 190px"
                       />
                     </span>
+                    <span v-else-if='row.label=="Reviews"'
+                      >{{decodeHtml(row.value)}} <button class='sortreview' v-on:click="sortReview">Sort by time</button></span
+                    >
                     <span v-else>{{decodeHtml(row.value)}}</span>
                   </template>
                 </vxe-table-column>
@@ -118,7 +121,6 @@
               <input class="reviewContent" />
               <button v-on:click="addReview">Add a review</button>
             </template>
-
           </vxe-modal>
           <vxe-modal
             v-model="showAddBook"

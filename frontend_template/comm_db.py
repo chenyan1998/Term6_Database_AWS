@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-from sqlalchemy import Column, VARCHAR, TEXT, INTEGER,CHAR, create_engine,func
+from fastapi import FastAPI, Request
+from sqlalchemy import Column, VARCHAR, TEXT,CHAR, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +8,8 @@ import pymongo
 from config import *
 from urllib.parse import unquote
 import logging
+import time
+
 
 Base = declarative_base()
 # define a Review object
@@ -27,15 +29,10 @@ class Review(Base):
     unixReviewTime = Column(TEXT)
 
 
-# CURRENT_REVIEW_IDX = 0
 # init mysql connection
 # engine = create_engine('mysql+pymysql://root:jrKa2qZhpt-Easd3GGV97@localhost:3306/kindle_review')
 engine = create_engine(f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@{MYSQL_IP}:{MYSQL_PORT}/{MYSQL_DATABASE}')
 DBSession = sessionmaker(bind=engine)
-# session = DBSession()
-# # get CURRENT_REVIEW_IDX from mysql
-# CURRENT_REVIEW_IDX = session.query(func.max(Review.idx)).scalar() with autoincrement, dont need this
-
 
 # init mongodb
 # Search for existing book by author and by title.
@@ -43,8 +40,9 @@ mongodb = pymongo.MongoClient(f"mongodb://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@
 mongodb_db = mongodb["kindle_metadata"]
 mongodb_col = mongodb_db["kindle_metadata"]
 
-# review = session.query(Review).filter(Review.id==6).one()
-# print(review.summary)
+web_log = mongodb["web_logs"]
+web_log_col = web_log["web_logs"]
+
 
 app = FastAPI()
 app.add_middleware(
@@ -56,6 +54,20 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    response = await call_next(request)
+    # print(f"{time.time()}|{request.method}|{request.url.path}|{response.status_code}")
+    temp = []
+    temp.append(time.time())
+    temp.append(request.method)
+    temp.append(str(request.url.include_query_params()))
+    temp.append(response.status_code)
+    web_log_col.insert({'timestamp':temp[0],'method':temp[1],'path':temp[2],'status_code':temp[3]})
+    temp = []
+    return response
+
+
 def mongo_fetch_all(cur):
     result = []
     result.append(cur.count())
@@ -64,21 +76,28 @@ def mongo_fetch_all(cur):
     return result
 
 @app.get("/api/readreview/")
-def read_review(asin: str='', reviewerID:str=''):
+def read_review(asin: str='', reviewerID:str='',sortby:str=''):
     session = DBSession()
-    if asin and reviewerID:
-        reviews = session.query(Review).filter(Review.asin == asin).filter(Review.reviewerID == reviewerID).all()
-    elif asin:
-        reviews = session.query(Review).filter(Review.asin == asin).all()
+    if sortby == '':
+        if asin and reviewerID:
+            reviews = session.query(Review).filter(Review.asin == asin).filter(Review.reviewerID == reviewerID).all()
+        elif asin:
+            reviews = session.query(Review).filter(Review.asin == asin).all()
+        else:
+            reviews = session.query(Review).filter(Review.reviewerID == reviewerID).all()
+        session.close()
     else:
-        reviews = session.query(Review).filter(Review.reviewerID == reviewerID).all()
-    session.close()
+        if asin and reviewerID:
+            reviews = session.query(Review).filter(Review.asin == asin).filter(Review.reviewerID == reviewerID).order_by(Review.unixReviewTime).all()
+        elif asin:
+            reviews = session.query(Review).filter(Review.asin == asin).order_by(Review.unixReviewTime).all()
+        else:
+            reviews = session.query(Review).filter(Review.reviewerID == reviewerID).order_by(Review.unixReviewTime).all()
+        session.close()
     return reviews
 
 @app.get("/api/addreview/")
 def add_review(asin: str='', reviewerID:str='',content:str=''):
-    # global CURRENT_REVIEW_IDX
-    # CURRENT_REVIEW_IDX += 1
     session = DBSession()
     new_review = Review(asin=asin,review=content)
     session.add(new_review)

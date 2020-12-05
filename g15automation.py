@@ -48,12 +48,12 @@ def create_ssh_key():
     global G15_SSH_KEY
     try:
         if os.path.exists(G15_SSH_KEY):
-            G15_SSH_KEY_PEM = open(G15_SSH_KEY,'r',encoding="utf8").read()
+            G15_SSH_KEY_PEM = open(G15_SSH_KEY, 'r', encoding="utf8").read()
             return G15_SSH_KEY_PEM
         else:
             g15_ssh_key_res = g15ec2.create_key_pair(KeyName=G15_SSH_KEY)
             G15_SSH_KEY_PEM = g15_ssh_key_res.key_material
-            fp = open(G15_SSH_KEY, 'w',encoding="utf8")
+            fp = open(G15_SSH_KEY, 'w', encoding="utf8")
             fp.write(G15_SSH_KEY_PEM)
             fp.close()
     except Exception as e:
@@ -256,6 +256,7 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
                 try:
                     ssh_client.connect(
                         hostname=ip_addr, username='ubuntu', pkey=pem_k)
+                    time.sleep(15)
                     break
                 except:
                     pass
@@ -271,8 +272,7 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
                 sftp_client.put(
                     file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
             # other connections wait for Mongo to upload file
-            # TEST
-            if 'mongo' or 'name' in bash_file_path.split("/")[-1]:
+            if 'mongo' in bash_file_path.split("/")[-1]:
                 fp = open('closesftp', 'w')
                 fp.close()
             while True:
@@ -287,70 +287,23 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
                 f"sudo chmod +x /home/ubuntu/{bash_file_path.split('/')[-1]}", get_pty=True)
             stdin, stdout, stderr = ssh_client.exec_command(
                 f'bash /home/ubuntu/{bash_file_path.split("/")[-1]}', get_pty=True)
+
             for line in iter(stdout.readline, ""):
-                print(f"From {bash_file_path.split('/')[-1]} " + line, end="")
-            ssh_client.close()
-            print(f'done {bash_file_path.split("/")[-1]}')
-            break
-        except:
-            try:
+                # print(f"From {bash_file_path.split('/')[-1]} " + line, end="")
+                # pass
                 pass
-            except:
-                pass
-            traceback.print_exc()
-
-# TEST
-
-
-def hadoop_send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string, node):
-    while True:
-        try:
-            ssh_client = paramiko.SSHClient()
-            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            pem_k = paramiko.RSAKey.from_private_key(StringIO(pem_string))
-            while True:
-                try:
-                    ssh_client.connect(
-                        hostname=ip_addr, username='ubuntu', pkey=pem_k)
-                    break
-                except:
-                    pass
-            print(
-                f'Start executing {bash_file_path.split("/")[-1]} upload files')
-            sftp_client = ssh_client.open_sftp()
-            sftp_client.put(
-                bash_file_path, f'/home/ubuntu/{bash_file_path.split("/")[-1]}')
-            for file_path in files_to_upload:
-                sftp_client.put(
-                    file_path, f'/home/ubuntu/{file_path.split("/")[-1]}')
-            while True:
-                if os.path.exists("closesftp"):
-                    time.sleep(2)
-                    sftp_client.put(
-                        G15_SSH_PUBKEY, '/home/ubuntu/.ssh/authorized_keys')
-                    sftp_client.put(G15_SSH_KEY, '/home/ubuntu/.ssh/id_rsa')
-                    sftp_client.close()
-                    break
-                time.sleep(2)
-
-            print(f'Start executing {bash_file_path.split("/")[-1]}')
-            ssh_client.exec_command(
-                f"sudo chmod +x /home/ubuntu/{bash_file_path.split('/')[-1]}", get_pty=True)
-            stdin, stdout, stderr = ssh_client.exec_command(
-                f'bash /home/ubuntu/{bash_file_path.split("/")[-1]}', get_pty=True)
-            for line in iter(stdout.readline, ""):
-                print(f"From {bash_file_path.split('/')[-1]} " + line, end="")
             ssh_client.close()
-            print(f'done {bash_file_path.split("/")[-1]}')
+            print(f'Subprocess done {bash_file_path.split("/")[-1]}')
             break
-        except:
-            traceback.print_exc()
+        except Exception as e:
+            print("Connection issues, reconnecting...")
+            print(e)
 
 
 def prepare_files(option):
+    global G15_INSTANCE
     if option == 'web':
         # for web
-        global G15_INSTANCE
         tarZip = zipfile.ZipFile('frontend.zip', 'w', zipfile.ZIP_DEFLATED)
         for root, dirs, files in os.walk('frontend_template/'):
             for file_name in files:
@@ -379,25 +332,45 @@ def prepare_files(option):
                 if 'data' in k:
                     workers += f'com.g15.{k} '
         workers = workers[:-1]
+        # namenode
         namenode_bash = open('hadoop_template/namenode.bash',
                              'r', encoding="utf8").read()
-        with open('namenode.bash', 'w', encoding="utf8",newline='\n') as f:
+        with open('namenode.bash', 'w', encoding="utf8", newline='\n') as f:
             namenode_bash = namenode_bash.replace('[[hosts]]', hosts)
             namenode_bash = namenode_bash.replace('[[workers]]', workers)
             namenode_bash = namenode_bash.replace(
                 '[[namenodepriip]]', namenodepriip)
             f.write(namenode_bash)
+        # datanodes
         datanode_bash = open('hadoop_template/datanode.bash',
                              'r', encoding="utf8").read()
         for k, v in G15_INSTANCE.items():
             if 'datanode' in k:
-                with open(f'{k}.bash', 'w', encoding="utf8",newline="\n") as f:
+                with open(f'{k}.bash', 'w', encoding="utf8", newline="\n") as f:
                     temp = datanode_bash
                     temp = temp.replace('[[hosts]]', hosts)
                     temp = temp.replace('[[workers]]', workers)
                     temp = temp.replace('[[namenodepriip]]', namenodepriip)
                     temp = temp.replace('[[whichdatanode]]', k)
                     f.write(temp)
+        # analytics
+        analytics_bash = open(
+            'hadoop_template/analytics.bash', 'r', encoding="utf8").read()
+        analytics_bash = analytics_bash.replace(
+            '[[mongopriip]]', G15_INSTANCE['mongo']["private_ip"])
+        analytics_bash = analytics_bash.replace(
+            '[[mysqlpriip]]', G15_INSTANCE['mysql']["private_ip"])
+        with open('analytics.bash', 'w', encoding="utf8", newline='\n') as f:
+            f.write(analytics_bash)
+        tfidf_py = open('analytics_template/tfidf.py','r',encoding="utf8").read()
+        pearson_py = open('analytics_template/pearson_correlation.py','r',encoding="utf8").read()
+        tfidf_py = tfidf_py.replace("[[namenodepriip]]", G15_INSTANCE["namenode"]["private_ip"])
+        pearson_py = pearson_py.replace("[[namenodepriip]]", G15_INSTANCE["namenode"]["private_ip"])
+
+        with open('tfidf.py', 'w', encoding="utf8", newline='\n') as f:
+            f.write(tfidf_py)
+        with open('pearson_correlation.py','w',encoding="utf8", newline='\n') as f:
+            f.write(pearson_py)
 
 
 def select_operation(option):
@@ -434,6 +407,7 @@ def select_operation(option):
 
 
 def initialize():
+    global logger
     try:
         os.remove('closesftp')
     except:
@@ -445,13 +419,18 @@ def initialize():
     create_security_group()
 
     # logging
-    LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
-    logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
+    logger = logging.getLogger("g15")
+    logger.setLevel(logging.DEBUG)
+    streamhandle = logging.StreamHandler()
+    streamhandle.setFormatter(logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s", "%Y-%m-%d %H:%M:%S"))
+    logger.addHandler(streamhandle)
 
 
 def launch_web_db():
     # create MongoDB instance
     global jobs
+    global logger
     mongotype = select_instance_type("MongoDB")
     g15_ins_mongo = g15ec2.create_instances(ImageId=IMAGEID, MinCount=1, MaxCount=1,
                                             InstanceType=mongotype, KeyName=G15_SSH_KEY,
@@ -481,11 +460,14 @@ def launch_web_db():
 
     # executing commands
     jobs.append(Process(target=send_shfile_exec, args=(
-        G15_INSTANCE["mongo"]["public_ip"], 'mongo/mongo.bash', ["mongo/kindle_metadata_final.zip", "mongo/mongo_commands.js"], G15_SSH_KEY_PEM,)))
+        G15_INSTANCE["mongo"]["public_ip"], 'mongo/mongo.bash', [
+            "mongo/kindle_metadata_final.zip", "mongo/mongo_commands.js"],
+        G15_SSH_KEY_PEM,)))
     jobs.append(Process(target=send_shfile_exec, args=(
         G15_INSTANCE["mysql"]["public_ip"], 'mysql/mysql.bash', ["mysql/sql_commands.sql"], G15_SSH_KEY_PEM,)))
     jobs.append(Process(target=send_shfile_exec, args=(
         G15_INSTANCE["web"]["public_ip"], 'frontend_template/web.bash', ["frontend.zip"], G15_SSH_KEY_PEM,)))
+    instance_config('store')
 
 
 def destroy_hadoop():
@@ -502,6 +484,8 @@ def destroy_hadoop():
 
 
 def launch_hadoop(n_datanodes):
+    global jobs
+    global logger
     try:
         instance_config('load')
     except:
@@ -537,31 +521,36 @@ def launch_hadoop(n_datanodes):
     prepare_files('hadoop')
     # execute task
     jobs.append(Process(target=send_shfile_exec, args=(
-        G15_INSTANCE["namenode"]["public_ip"], 'namenode.bash', [G15_SSH_KEY, G15_SSH_PUBKEY,'mongo/kindle_metadata_final.zip'], G15_SSH_KEY_PEM,)))
+        G15_INSTANCE["namenode"]["public_ip"], 'namenode.bash', [G15_SSH_KEY, G15_SSH_PUBKEY,'analytics.bash',"tfidf.py","pearson_correlation.py"], G15_SSH_KEY_PEM, )))
     for k, v in G15_INSTANCE.items():
         if 'datanode' in k:
             jobs.append(Process(target=send_shfile_exec, args=(
-                G15_INSTANCE[k]["public_ip"], f'{k}.bash', [G15_SSH_KEY, G15_SSH_PUBKEY], G15_SSH_KEY_PEM,)))
+                G15_INSTANCE[k]["public_ip"], f'{k}.bash', [G15_SSH_KEY, G15_SSH_PUBKEY], G15_SSH_KEY_PEM, )))
 
 
 if __name__ == "__main__":
     from g15_config import *
+    logger = ''
     # initialize session and ec2
     g15session = get_aws_session()
     g15ec2 = g15session.resource('ec2')
     g15ec2client = g15session.client('ec2')
     initialize()
     jobs = []
-    if select_operation('web'):
-        logging.info("Setting up WEB and database.")
-        launch_web_db()
+    web_selection = select_operation('web')
     number_datanodes = select_operation('hadoop')
+    if web_selection:
+        logger.info("Setting up WEB and database.")
+        launch_web_db()
     if number_datanodes:
-        logging.info("Setting up hadoop cluster.")
+        logger.info("Setting up hadoop cluster.")
         launch_hadoop(number_datanodes)
     print(G15_INSTANCE)
     for job in jobs:
         job.start()
     for job in jobs:
         job.join()
-    print('done')
+    if G15_INSTANCE.get('web'):
+        print(
+            f"You can visit http://{G15_INSTANCE['web']['public_ip']} for book search.")
+    print('Done')

@@ -16,6 +16,41 @@ var Main = {
     };
   },
   methods: {
+    sortReview: function () {
+      // console.log(localStorage.getItem("asin"))
+      _that = this;
+      this.detailData = this.detailData.filter((element) => {
+        return element.label != "Reviews" && element.label != "";
+      });
+      var temp = "";
+      if (localStorage.getItem("sort") == "false") {
+        localStorage.setItem("sort", "true");
+        temp = "&sortby=time";
+      } else {
+        localStorage.setItem("sort", "false");
+        temp = "";
+      }
+      axios
+        .get(
+          BASEURL + "/readreview/?asin=" + localStorage.getItem("asin") + temp
+        )
+        .then(function (res) {
+          res = res.data;
+          HAS_REVIEW = false;
+          res.forEach((element) => {
+            if (!HAS_REVIEW) {
+              _that.detailData.push({
+                label: "Reviews",
+                value: element.review,
+              });
+              HAS_REVIEW = true;
+            } else {
+              _that.detailData.push({ label: "", value: element.review });
+            }
+          });
+        })
+        .catch();
+    },
     decodeHtml: function (html) {
       var txt = document.createElement("textarea");
       txt.innerHTML = html;
@@ -125,6 +160,8 @@ var Main = {
           return { label: field, value: row[field] };
         }
       );
+      localStorage.setItem("asin", row["asin"]);
+      localStorage.setItem("sort", "false");
       axios
         .get(BASEURL + "/readreview/?asin=" + row["asin"])
         .then(function (res) {
