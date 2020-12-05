@@ -90,8 +90,7 @@ def store_instance_ip(instance_id, instance_name):
 
 
 def select_instance_type(ins_name):
-    # TEST
-    return G15_INSTANCE_TYPE[4]
+    # return G15_INSTANCE_TYPE[4]
     global G15_SELECT_ASK
     if G15_SELECT_ASK == '':
         # initial ask string
@@ -118,10 +117,8 @@ def create_security_group():
     global G15_SG_ID
     vpc_response = g15ec2client.describe_vpcs()
     G15_VPC_ID = vpc_response["Vpcs"][0]["VpcId"]
-    # test
     if os.path.exists('sg_ids'):
         G15_SG_ID = pickle.load(open('sg_ids', 'rb'))
-    ##
     # create security groups
     try:
         """initial all 4 secuurity groups first"""
