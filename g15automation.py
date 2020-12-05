@@ -211,6 +211,10 @@ def create_security_group():
                                                                  'ToPort': 22,
                                                                  'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
                                                                 {'IpProtocol': 'tcp',
+                                                                 'FromPort': 80,
+                                                                 'ToPort': 80,
+                                                                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
+                                                                {'IpProtocol': 'tcp',
                                                                  'FromPort': 9000,
                                                                  'ToPort': 9000,
                                                                  'UserIdGroupPairs': [
@@ -362,14 +366,18 @@ def prepare_files(option):
             '[[mysqlpriip]]', G15_INSTANCE['mysql']["private_ip"])
         with open('analytics.bash', 'w', encoding="utf8", newline='\n') as f:
             f.write(analytics_bash)
-        tfidf_py = open('analytics_template/tfidf.py','r',encoding="utf8").read()
-        pearson_py = open('analytics_template/pearson_correlation.py','r',encoding="utf8").read()
-        tfidf_py = tfidf_py.replace("[[namenodepriip]]", G15_INSTANCE["namenode"]["private_ip"])
-        pearson_py = pearson_py.replace("[[namenodepriip]]", G15_INSTANCE["namenode"]["private_ip"])
+        tfidf_py = open('analytics_template/tfidf.py',
+                        'r', encoding="utf8").read()
+        pearson_py = open(
+            'analytics_template/pearson_correlation.py', 'r', encoding="utf8").read()
+        tfidf_py = tfidf_py.replace(
+            "[[namenodepriip]]", G15_INSTANCE["namenode"]["private_ip"])
+        pearson_py = pearson_py.replace(
+            "[[namenodepriip]]", G15_INSTANCE["namenode"]["private_ip"])
 
         with open('tfidf.py', 'w', encoding="utf8", newline='\n') as f:
             f.write(tfidf_py)
-        with open('pearson_correlation.py','w',encoding="utf8", newline='\n') as f:
+        with open('pearson_correlation.py', 'w', encoding="utf8", newline='\n') as f:
             f.write(pearson_py)
 
 
@@ -521,11 +529,74 @@ def launch_hadoop(n_datanodes):
     prepare_files('hadoop')
     # execute task
     jobs.append(Process(target=send_shfile_exec, args=(
-        G15_INSTANCE["namenode"]["public_ip"], 'namenode.bash', [G15_SSH_KEY, G15_SSH_PUBKEY,'analytics.bash',"tfidf.py","pearson_correlation.py"], G15_SSH_KEY_PEM, )))
+        G15_INSTANCE["namenode"]["public_ip"], 'namenode.bash', [G15_SSH_KEY, G15_SSH_PUBKEY, 'analytics.bash', "tfidf.py", "pearson_correlation.py"], G15_SSH_KEY_PEM, )))
     for k, v in G15_INSTANCE.items():
         if 'datanode' in k:
             jobs.append(Process(target=send_shfile_exec, args=(
                 G15_INSTANCE[k]["public_ip"], f'{k}.bash', [G15_SSH_KEY, G15_SSH_PUBKEY], G15_SSH_KEY_PEM, )))
+
+
+def tear_down():
+    global g15ec2
+    global g15ec2client
+    global G15_SG_ID
+    global G15_INSTANCE
+    # remove instance first
+    for k, v in G15_INSTANCE.items():
+        try:
+            g15ec2.instances.filter(InstanceIds=v["id"]).terminate()
+        except:
+            pass
+    G15_INSTANCE = {}
+    try:
+        os.remove("instance_config")
+    except:
+        pass
+    try:
+        sg = g15ec2.SecurityGroup(G15_SG_ID.web)
+        sg.revoke_ingress(IpPermissions=sg.ip_permissions)
+    except:
+        pass
+    try:
+        sg = g15ec2.SecurityGroup(G15_SG_ID.hadoop)
+        sg.revoke_ingress(IpPermissions=sg.ip_permissions)
+    except:
+        pass
+    try:
+        sg = g15ec2.SecurityGroup(G15_SG_ID.mysql)
+        sg.revoke_ingress(IpPermissions=sg.ip_permissions)
+    except:
+        pass
+    try:
+        sg = g15ec2.SecurityGroup(G15_SG_ID.mongo)
+        sg.revoke_ingress(IpPermissions=sg.ip_permissions)
+    except:
+        pass
+    try:
+        response = g15ec2client.delete_security_group(GroupId=G15_SG_ID.web)
+    except:
+        pass
+    try:
+        response = g15ec2client.delete_security_group(GroupId=G15_SG_ID.hadoop)
+    except:
+        pass
+    try:
+
+        response = g15ec2client.delete_security_group(GroupId=G15_SG_ID.mongo)
+    except:
+        pass
+    try:
+        response = g15ec2client.delete_security_group(GroupId=G15_SG_ID.mysql)
+    except:
+        pass
+    try:
+        os.remove('sg_ids')
+    except:
+        pass
+    try:
+        response = g15ec2client.delete_key_pair(KeyName=G15_SSH_KEY)
+    except:
+        pass
 
 
 if __name__ == "__main__":
@@ -542,9 +613,11 @@ if __name__ == "__main__":
     if web_selection:
         logger.info("Setting up WEB and database.")
         launch_web_db()
+        instance_config('store')
     if number_datanodes:
         logger.info("Setting up hadoop cluster.")
         launch_hadoop(number_datanodes)
+        instance_config('store')
     print(G15_INSTANCE)
     for job in jobs:
         job.start()
@@ -553,4 +626,12 @@ if __name__ == "__main__":
     if G15_INSTANCE.get('web'):
         print(
             f"You can visit http://{G15_INSTANCE['web']['public_ip']} for book search.")
-    print('Done')
+    if number_datanodes:
+        logger.info("Start analyzing...")
+        send_shfile_exec(G15_INSTANCE["namenode"]
+                         ["public_ip"], '', [], G15_SSH_KEY_PEM)
+
+    _ = input("Tear down everything?\n(1) Yes\t(2) No\n")
+    if _ == '1':
+        tear_down()
+    logger.info("Bye Bye")

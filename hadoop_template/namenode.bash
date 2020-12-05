@@ -188,7 +188,7 @@ sudo chown -R hadoop:hadoop /opt/spark-3.0.1-bin-hadoop3.2
 
 # install python
 sudo apt remove python3 -y
-sudo apt install software-properties-common -y
+sudo apt install software-properties-common nginx -y
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update -y
 sudo apt remove python-3.5 -y
