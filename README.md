@@ -39,10 +39,15 @@ aws_session_token=FwoGZXIvYXdzEHQaDOHqdRmYfE1fKPbuqiLOAY6ng/nu7PxxEC6moRopnfY2NM
 
 You can also customize your preferred `IMAGEID` in `g15_config.py`.
 
-### Automate it!
+### Automate it !
 After finishing setting the credentials, you can directly run `g15automation.py` to automatically set up the whole system.
 
 There are some simple prompts in the process of running and you may need to answer *yes/no* or *input* some numbers for some prompts 
+
+<br>
+
+<details>
+<summary>Some prompts</summary>
 
 #### Setting up WEB and database
 A prompt will ask you:
@@ -76,4 +81,11 @@ Tear down everything?
 
 - Yes, the programme will terminate the instances it created so far and delete security groups it has created.
 - No, skip this process.
+</details>
+
+<br>
+
+### Note
+1. It is not necessary that you run the clean process after setting up. You can always re-running this script with skipping the set up process (by choosing *no*) to reach the clean up process.
+2. After setting up, you can easily scale up and down the Hadoop cluster by re-running this script with skipping **WEB and database** process and inputting your desired number of datanodes. The script will automatically **delete** the old cluster and build a new one. **NOTE: Please BACKUP your cluster BEFORE you scale up and down, the script WILL NOT keep your data**
 
