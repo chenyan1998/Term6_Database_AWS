@@ -491,7 +491,7 @@ def destroy_hadoop():
     return True
 
 
-def launch_hadoop(n_datanodes):
+def launch_hadoop(n_datanodes,namenodeclosesftp=False):
     global jobs
     global logger
     try:
@@ -530,6 +530,10 @@ def launch_hadoop(n_datanodes):
     # execute task
     jobs.append(Process(target=send_shfile_exec, args=(
         G15_INSTANCE["namenode"]["public_ip"], 'namenode.bash', [G15_SSH_KEY, G15_SSH_PUBKEY, 'analytics.bash', "tfidf.py", "pearson_correlation.py"], G15_SSH_KEY_PEM, )))
+    if namenodeclosesftp:
+        time.sleep(12)
+        fp = open("closesftp",'w')
+        fp.close()
     for k, v in G15_INSTANCE.items():
         if 'datanode' in k:
             jobs.append(Process(target=send_shfile_exec, args=(
@@ -541,17 +545,23 @@ def tear_down():
     global g15ec2client
     global G15_SG_ID
     global G15_INSTANCE
+    try:
+        instance_config('load')
+    except:
+        traceback.print_exc()
     # remove instance first
     for k, v in G15_INSTANCE.items():
         try:
-            g15ec2.instances.filter(InstanceIds=v["id"]).terminate()
-        except:
-            pass
+            g15ec2.instances.filter(InstanceIds=[v["id"]]).terminate()
+        except Exception as e:
+            traceback.print_exc()
     G15_INSTANCE = {}
     try:
-        os.remove("instance_config")
+        # os.remove("instance_config")
+        pass
     except:
         pass
+    time.sleep(60)
     try:
         sg = g15ec2.SecurityGroup(G15_SG_ID.web)
         sg.revoke_ingress(IpPermissions=sg.ip_permissions)
@@ -577,11 +587,6 @@ def tear_down():
     except:
         pass
     try:
-        response = g15ec2client.delete_security_group(GroupId=G15_SG_ID.hadoop)
-    except:
-        pass
-    try:
-
         response = g15ec2client.delete_security_group(GroupId=G15_SG_ID.mongo)
     except:
         pass
@@ -589,12 +594,24 @@ def tear_down():
         response = g15ec2client.delete_security_group(GroupId=G15_SG_ID.mysql)
     except:
         pass
+    while True:
+        try:
+            response = g15ec2client.delete_security_group(
+                GroupId=G15_SG_ID.hadoop)
+            break
+        except:
+            pass
     try:
-        os.remove('sg_ids')
+        # os.remove('sg_ids')
+        pass
     except:
         pass
     try:
         response = g15ec2client.delete_key_pair(KeyName=G15_SSH_KEY)
+    except:
+        pass
+    try:
+        os.remove(G15_SSH_KEY)
     except:
         pass
 
@@ -616,7 +633,10 @@ if __name__ == "__main__":
         instance_config('store')
     if number_datanodes:
         logger.info("Setting up hadoop cluster.")
-        launch_hadoop(number_datanodes)
+        if web_selection:
+            launch_hadoop(number_datanodes)
+        else:
+            launch_hadoop(number_datanodes, True)
         instance_config('store')
     print(G15_INSTANCE)
     for job in jobs:
@@ -624,13 +644,15 @@ if __name__ == "__main__":
     for job in jobs:
         job.join()
     if G15_INSTANCE.get('web'):
-        print(
+        logger.info(
             f"You can visit http://{G15_INSTANCE['web']['public_ip']} for book search.")
     if number_datanodes:
         logger.info("Start analyzing...")
         send_shfile_exec(G15_INSTANCE["namenode"]
-                         ["public_ip"], '', [], G15_SSH_KEY_PEM)
-
+                         ["public_ip"], 'analytics.bash', [], G15_SSH_KEY_PEM)
+        logger.info(f'''Analysis completed. You can download analysis result from:
+Pearson correlation: http://{G15_INSTANCE["namenode"]["public_ip"]}/pearson_corr.txt
+Review TFIDF: http://{G15_INSTANCE["namenode"]["public_ip"]}/reviews_tfidf.tar.gz\n''')
     _ = input("Tear down everything?\n(1) Yes\t(2) No\n")
     if _ == '1':
         tear_down()

@@ -12,3 +12,7 @@ test_*.py
 *.log
 instance_config
 analytics.bash
+g15pubkey
+tfidf.py
+pearson_correlation.py
+.vscode/*
