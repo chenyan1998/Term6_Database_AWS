@@ -197,8 +197,6 @@ sudo apt remove python3-pip -y
 sudo apt install python3.7 -y
 wget https://bootstrap.pypa.io/get-pip.py
 python3.7 get-pip.py
-rm get-pip.py -f
-
 python3.7 -m pip install pyspark numpy
 export PYSPARK_PYTHON=/usr/bin/python3.7
 export PYSPARK_DRIVER_PYTHON=/usr/bin/python3.7

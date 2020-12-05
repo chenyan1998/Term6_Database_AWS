@@ -11,3 +11,4 @@ datanode*.bash
 test_*.py
 *.log
 instance_config
+analytics.bash

@@ -8,9 +8,9 @@ class sg_ids:
         self.hadoop = ''
 
 
-CRED = """aws_access_key_id=ASIAQ6R4KCM7V4TI54NZ
-aws_secret_access_key=RzDhHMEn9HqeTAMT2ozD8CCrHoYIsF/y/Q8tEqlK
-aws_session_token=FwoGZXIvYXdzEGEaDMVygULSGajNYNPq5iLOAd+/6twO1/X91uyhYBL7Fy7ZA7ZUGiIS/Y+1diLd/E62lcE0akyLxwZL0UoI+RKrrfyDxkUU7EhL0uuPcC9aMQ/ITEI0SYYYj0qEKKKhUxGIVFMTBf1YYgdSues1Nd8UHfaYbQec3UYEr1x9W3sh2FvrVIASfCm+2YnFoBHS0PJoOArh+JVL6/xSIs+32dmF4eVdfqvDqGEAuw5EJNN03TNg3nidv0GIfkr3qAOmXDrJASMR9ExERoot0Bg1JryLzSZWSjnj4i2aiUNYlJaLKJCyqf4FMi2dJuBfOA9ByZ31jgxbd8uYxUAFWrlMEKxszNmpxNlLo8iNDBHHrLsbIaBKiPA="""
+CRED = """aws_access_key_id=ASIAQ6R4KCM7YLFRMWMB
+aws_secret_access_key=9OPTgDvfqdavXVBAxtwu1TdaxvRGj+SqgtxR9kBy
+aws_session_token=FwoGZXIvYXdzEGsaDDbxJj9AYbiRuJpiwSLOAVqFaveCytaCp3PdOO1pa3uTv1a0aFTnooUPiiAV+Jf1FH8bdlqcWJ9Q+5BfuyBDokkWfdsPXH+vHMzPAvZy+WW0NVFpakbsZWtnxNZPZA/B3irPsmUUAYjtSxRRmLYYtIerRjwMFEhSJuSsc7As8Pkjh//RBLE05+JjCSatEMAmXKRlKpA7yYlpZORba7DikCmqeVWuV0pO4kJSa9+HP4nUuTmKrp8fjUuLBVWID0DHCkKxgCqqlaH3+awCP1mMq9lr6IH+UbuxDCFBzBt6KO3Hq/4FMi3xghm3D0OnpQgH7Oejp4lkt6nUFvpjqb1Dtb3qDajf/ZjEPgrvzk/jiEm4VRQ="""
 IMAGEID = "ami-0f82752aa17ff8f5d"
 G15_SSH_KEY = "g15key"
 G15_SSH_PUBKEY = "g15pubkey"
