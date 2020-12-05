@@ -417,6 +417,10 @@ def initialize():
         os.remove('closesftp')
     except:
         pass
+    try:
+        os.mkdir("frontend")
+    except:
+        pass
     # initialized ssh key
     create_ssh_key()
 
@@ -545,7 +549,7 @@ def tear_down():
     try:
         instance_config('load')
     except:
-        traceback.print_exc()
+        pass
     # remove instance first
     for k, v in G15_INSTANCE.items():
         try:
