@@ -244,7 +244,8 @@ def create_security_group():
         pickle.dump(G15_SG_ID, fp)
         fp.close()
     except Exception as e:
-        traceback.print_exc()
+        # traceback.print_exc()
+        pass
 
 
 def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
@@ -298,7 +299,6 @@ def send_shfile_exec(ip_addr, bash_file_path, files_to_upload, pem_string):
             break
         except Exception as e:
             print("Connection issues, reconnecting...")
-            print(e)
 
 
 def prepare_files(option):
@@ -425,7 +425,7 @@ def initialize():
 
     # logging
     logger = logging.getLogger("g15")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     streamhandle = logging.StreamHandler()
     streamhandle.setFormatter(logging.Formatter(
         "%(asctime)s - %(levelname)s - %(message)s", "%Y-%m-%d %H:%M:%S"))

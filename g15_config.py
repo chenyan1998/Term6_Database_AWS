@@ -8,9 +8,7 @@ class sg_ids:
         self.hadoop = ''
 
 
-CRED = """aws_access_key_id=ASIAQ6R4KCM7YLFRMWMB
-aws_secret_access_key=9OPTgDvfqdavXVBAxtwu1TdaxvRGj+SqgtxR9kBy
-aws_session_token=FwoGZXIvYXdzEGsaDDbxJj9AYbiRuJpiwSLOAVqFaveCytaCp3PdOO1pa3uTv1a0aFTnooUPiiAV+Jf1FH8bdlqcWJ9Q+5BfuyBDokkWfdsPXH+vHMzPAvZy+WW0NVFpakbsZWtnxNZPZA/B3irPsmUUAYjtSxRRmLYYtIerRjwMFEhSJuSsc7As8Pkjh//RBLE05+JjCSatEMAmXKRlKpA7yYlpZORba7DikCmqeVWuV0pO4kJSa9+HP4nUuTmKrp8fjUuLBVWID0DHCkKxgCqqlaH3+awCP1mMq9lr6IH+UbuxDCFBzBt6KO3Hq/4FMi3xghm3D0OnpQgH7Oejp4lkt6nUFvpjqb1Dtb3qDajf/ZjEPgrvzk/jiEm4VRQ="""
+CRED = """"""
 IMAGEID = "ami-0f82752aa17ff8f5d"
 G15_SSH_KEY = "g15key"
 G15_SSH_PUBKEY = "g15pubkey"

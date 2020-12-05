@@ -42,7 +42,7 @@ You can also customize your preferred `IMAGEID` in `g15_config.py`.
 ### Automate it!
 After finishing setting the credentials, you can directly run `g15automation.py` to automatically set up the whole system.
 
-There are some simple prompts in the process of running and you may need to answer *yes/no* or *input* some number for some prompts 
+There are some simple prompts in the process of running and you may need to answer *yes/no* or *input* some numbers for some prompts 
 
 #### Setting up WEB and database
 A prompt will ask you:
@@ -54,4 +54,26 @@ Setup WEB and Database?
 - Yes, the programme will set up WEB frontend instance, MySQL instance and MongoDB instance.
 - No, skip this setup.
 
-#### 
+#### Setting up Hadoop cluster
+A prompt will ask you:
+```
+Setup Hadoop cluster?
+(1) Yes (2) No
+```
+
+- Yes, the programme will ask you how many datanodes you need and you shall input a number. And it will set up one namenode instance plus your desired number of datanode instances.
+```
+Please input how many datanodes you want to setup.
+```
+- No, skip this setup.
+
+#### Clean up
+A prompt will ask you:
+```
+Tear down everything?
+(1) Yes (2) No
+```
+
+- Yes, the programme will terminate the instances it created so far and delete security groups it has created.
+- No, skip this process.
+
