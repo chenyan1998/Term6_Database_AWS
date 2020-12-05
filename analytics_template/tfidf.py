@@ -4,7 +4,7 @@ from pyspark.ml.feature import HashingTF, IDF, Tokenizer, CountVectorizer
 
 sparkSession = SparkSession.builder.appName("tf idf Notebook").getOrCreate()
 sc = sparkSession.sparkContext
-hdfs_nn = "172.31.67.32"
+hdfs_nn = "[[namenodepriip]]"
 reviews = sparkSession.read.options(header= True).csv("hdfs://%s:9000/user/hadoop/Reviews/part-m-00000" % (hdfs_nn))
 # reviews.show()
 
