@@ -10,7 +10,9 @@ Chi Ziheng       1003030
 ```
 
 Please note that all our python scripts need Python3.7+ to run.
+
 You can also find our automation script demonstration video here: [Video link](https://github.com/chenyan1998/50043.DataBase_And_BigData/blob/main/assets/automation_demo.mp4)
+
 
 Table of Contents
 - [1. Introduction](#1-introduction)
@@ -165,7 +167,7 @@ There are some template files and some values such as IP and hostname need to be
 Users can search books by title in the top bar of the home page. The searching result of the related book information(title, image, category, description and price) will show in a list.
 
 ### 1.3.2. Pagination
-If there are more than 50 results, the page will only show the first 50 results. You can click next page button located on the top to view the next 50 results.
+If there are more than 50 results, the page will only show the first 50 results. You can click `next page` button located on the top to view the next 50 results.
 
 ### 1.3.3. Add a new book
 User can add a new book at the homepage by manually input book attributes(eg. ASIN number, title, imUrl and description) to the database in the top bar of the home page.
