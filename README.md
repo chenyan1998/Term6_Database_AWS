@@ -216,7 +216,7 @@ Following steps show how to run our automation script.
 
 2. You need to install AWS Command Line Interface to run this programme. More information about AWS CLI can be found here: [https://aws.amazon.com/cli/](https://aws.amazon.com/cli/). Please follow the instructions to install AWS CLI on your system.
 
-3. You need also run the following code to install some necessary modules.
+3. You also need run the following code to install some necessary modules.
 
     ```
     python3 -m pip install boto3 --user
@@ -225,7 +225,7 @@ Following steps show how to run our automation script.
 
 
 ## 2.2. Set up credentials
-To run the automation process, you need to first put your AWS credentials in `g15_config.py`, `CRED` variable. Please make sure the credentials are in tripple quotes.
+To run the automation process, you first need to put your AWS credentials in `g15_config.py`, `CRED` variable. Please make sure the credentials are in tripple quotes.
 
 The credentials will be something like:
 ```
@@ -308,7 +308,7 @@ The backend of the production system consists of two standalone AWS ec2 instance
 
 ### 3.2.1. MySQL
 
-- Relational Database (hosted on standalone AWS ec2 instance)
+- Relational Database (hosted on a standalone AWS ec2 instance)
 - Mysql is chosen to store relational data, and the automation is accomplished through a combination of Mysql setup bash script and SQL commands scripts.
 - Bash script, which is `mysql.bash`, performs the following functionalities:
   1. Install Mysql database
@@ -319,12 +319,12 @@ The backend of the production system consists of two standalone AWS ec2 instance
 
 - SQL commands script which is `sql_commands.sql`, performs the following functionalities:
   1. Create kindle_reviews database 
-  2. Create table reviews to store kindle reviews with add on indexes to speed up performance
-  3. Loading kindle reviews data into table
+  2. Create table reviews to store kindle reviews with adding indexes to speed up performance
+  3. Load kindle reviews data into table
 
 ## 3.3. MongoDB
 
-- Mongodb (hosted on standalone AWS ec2 instance)
+- Mongodb (hosted on a standalone AWS ec2 instance)
 - Mongodb is chosen to store non-relational data (kindle book metadata), and the automation is accomplished through a combination of Mongodb setup bash script and mongo commands
 - Bash script, which is `mongo.bash`, performs the following functionalities: 
   1. Install Mongodb database
