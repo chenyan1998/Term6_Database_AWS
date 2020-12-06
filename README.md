@@ -9,6 +9,9 @@ Hua Guoqiang     1003783
 Chi Ziheng       1003030
 ```
 
+Please note that all our python script need Python3.7+ to run.
+You can also find our automation script demostration video here: [Video link](https://github.com/chenyan1998/50043.DataBase_And_BigData/blob/main/assets/automation_demo.mp4)
+
 Table of Contents
 - [1. Introduction](#1-introduction)
   - [1.1. Instances](#11-instances)
@@ -57,7 +60,7 @@ This repository contains the necessary code to run this web application and anal
 ## 1.1. Instances
 We need several AWS instances to run the system.
 - Front end
-  - web server
+  - Web server
   - MySQL server
   - MongoDB server
 
@@ -67,7 +70,6 @@ We need several AWS instances to run the system.
   - Datanode2
   - Datanode3
   - ...
-
 
 ## 1.2. File structure and role
 
@@ -147,7 +149,7 @@ There are some template files and some values such as IP and hostname need to be
     A MySQL script to create database structure, create users and import data to MySQL.
 - `g15_config.py`
     
-    A congiuration file to store some parameters such as IMAGEID.
+    A confiuration file to store some parameters such as IMAGEID.
 - `g15automation.py`
 
     An automation script to set up the whole system.
@@ -160,13 +162,13 @@ There are some template files and some values such as IP and hostname need to be
 ## 1.3. Web application features
 
 ### 1.3.1. Search
-Users can search books by title in the top bar of the home page. The searching result of the related book information(title,image,category,description and price) will show in a list.
+Users can search books by title in the top bar of the home page. The searching result of the related book information(title, image, category, description and price) will show in a list.
 
 ### 1.3.2. Pagination
 If there are more than 50 results, the page will only show the first 50 results. You can click next page button located on the top to view the next 50 results.
 
 ### 1.3.3. Add a new book
-User can add a new book at the homepage by manual input book attributes(eg. ASIN number, title, imUrl and description) to the database in the top bar of the home page.
+User can add a new book at the homepage by manually input book attributes(eg. ASIN number, title, imUrl and description) to the database in the top bar of the home page.
 
 ### 1.3.4. Add a new review
 After users arrive at the search result page, they can click a book title and add a new review manually at the pop-up window to the database.
@@ -175,7 +177,7 @@ After users arrive at the search result page, they can click a book title and ad
 After you perform a search and get some results, you can click a genre in category column and the page will show the results in this genre.
 
 ### 1.3.6. Reviews sort by time
-Users can sort reviews by time at the pop-up view details window. They can click the ‘Sort by time’ button to sort reviews. 
+Users can sort reviews by time at the pop-up view details window. They can click the `Sort by time` button to sort reviews. 
 
 <details>
 <summary>Some screenshots</summary>
@@ -193,6 +195,7 @@ Users can sort reviews by time at the pop-up view details window. They can click
 ### 1.4.1. Flexible
 
 - You can choose to set up *web and databases* only or set up *hadoop cluster* only.
+- You can choose how many datanodes you need when running the script.
 - You can always **scale** the hadoop cluster by running the script without rebuilding the front end system.
 - You can come back to the script anytime you want to perform tear-down process.
 
@@ -234,7 +237,7 @@ You can also customize your preferred `IMAGEID` in `g15_config.py`.
 ## 2.3. Automate it !
 After finishing setting the credentials, you can directly run `g15automation.py` to automatically set up the whole system.
 
-There are some simple prompts in the process of running and you may need to answer *yes/no* or *input* some numbers for some prompts 
+There are some simple prompts in the process of running and you may need to answer *yes/no* or *input* some numbers for some prompts.
 
 <br>
 
@@ -333,7 +336,7 @@ The backend of the production system consists of two standalone aws ec2 instance
   3. Create web_log database and collection to store web logs with assigned test_user and password to it
 
 ## 3.4. Data Processing
-- The kindle metadata is processed and cleaned to remove records which miss major information such as asin, title, etc
+- The kindle metadata is processed and cleaned to remove records which miss major information such as `asin`, `title`, etc
 - The final version of kindle metadata is exported and stored separately as a zip file `kindle_metadata_final.zip` for the usage of automation.
 
 ## 3.5. Analytics system
@@ -366,10 +369,10 @@ For now, the automation script can scale up and down the cluster by **destroying
    - Initialize a pyspark session in spark context
    - Read kindle_metadata.json and kindle_reviews.csv as pyspark.sql.Dataframe
    - Preprocess kindle_metadata.json including selecting columns `asin` and `price` and filtering books without price information given.
-   - Preprocess kindle_reviews.csv including selecting columns “asin” and `reviewText`,  creating new column storing the length of each review, grouping the dataframe by `asin` and do aggregations with `mean` methods.
+   - Preprocess kindle_reviews.csv including selecting columns `asin` and `reviewText`,  creating new column storing the length of each review, grouping the dataframe by `asin` and do aggregations with `mean` methods.
    - Assume x, y represents the price of the book and the average review length respectively, pearson correlation is calculated as
         
-        <img src="https://latex.codecogs.com/svg.latex?\dfrac{n\sum{xy}-\sum{x}\sum{y}}{\sqrt{n\sum{x^2}-(\sum{x})^2}*n*\sqrt{n\sum{y^2}-(\sum{y})^2}}" />
+        <img src="https://latex.codecogs.com/svg.latex?\dfrac{n\sum{xy}-\sum{x}\sum{y}}{\sqrt{n\sum{x^2}-(\sum{x})^2}\sqrt{n\sum{y^2}-(\sum{y})^2}}" />
         
         where n is the total number of books.
     - We then calculate each term in map-reduce fashion. For example, we apply Map function to calculate <img src="https://latex.codecogs.com/svg.latex?x_iy_i" /> and apply the Reduce function to sum them up to get <img src="https://latex.codecogs.com/svg.latex?xy" />.
@@ -411,7 +414,7 @@ Setup cloud infrastructures using python script `g15automation.py`. The script l
 - Create and configure security groups.
 - Create four ec2 instances for one namenode and three datanodes.
 - Setting up a multi node cluster in hadoop 3.3.0 in a distributed Hadoop environment.
-- Setting up Sqoop and MongoDB at namenode to load data from the production system(MySQL and MongoDB), and store in a hadoop distributed file system.
+- Setting up Sqoop and MongoDB at namenode to load data from the production system (MySQL and MongoDB), and store in the hadoop distributed file system.
 - Setting up Apache Spark framework for analyzing metadata and reviews in cluster computing environments.
 - Initialising spark session and Call `tfidf.py` and `pearson_correlation.py` to calculate TF-IDF on the review text and Pearson Correlation between price and average review length. We store TF-IDF value in several CSV files in `reviews_tfidf_dir` directory.
 - Stop spark session
