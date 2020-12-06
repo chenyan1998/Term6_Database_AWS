@@ -3,9 +3,9 @@
 
 ```
 Chen Yan         1003620
-Zhang Shaozuo    1003
+Zhang Shaozuo    1003756
 Hua Guoqiang     1003783
-Chi Ziheng       1003
+Chi Ziheng       1003030
 ```
 
 The project is aiming to do a web application for Kindle book reviews and a system to analyze the statistics. 
