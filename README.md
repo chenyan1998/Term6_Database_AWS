@@ -9,8 +9,8 @@ Hua Guoqiang     1003783
 Chi Ziheng       1003030
 ```
 
-Please note that all our python script need Python3.7+ to run.
-You can also find our automation script demostration video here: [Video link](https://github.com/chenyan1998/50043.DataBase_And_BigData/blob/main/assets/automation_demo.mp4)
+Please note that all our python scripts need Python3.7+ to run.
+You can also find our automation script demonstration video here: [Video link](https://github.com/chenyan1998/50043.DataBase_And_BigData/blob/main/assets/automation_demo.mp4)
 
 Table of Contents
 - [1. Introduction](#1-introduction)
@@ -53,7 +53,7 @@ Table of Contents
 
 
 # 1. Introduction
-The project is aiming to do a web application for Kindle book reviews and a system to analyze the statistics. An automation script to set up the whole system is also requrired.
+The project is aiming to do a web application for Kindle book reviews and a system to analyze the statistics. An automation script to set up the whole system is also required.
 
 This repository contains the necessary code to run this web application and analytics system plus an automation script which sets up the whole system automatically.
 
@@ -93,13 +93,13 @@ There are some template files and some values such as IP and hostname need to be
     A **template** configuration file to store database connection details such as IP, port and password.
   - `index.html`
     
-    Front end HTML file which determines structure of the web page.
+    Front end HTML file which determines the structure of the web page.
   - `main.css`
     
-    Front end cascading style sheets which decorates the web page.
+    Front end cascading style sheet which decorates the web page.
   - `main.js`
     
-    A **template** JavaScript file which determines the interaction logic of front end.
+    A **template** JavaScript file which determines the interaction logic of the front end.
   - `web.bash`
     
     A shell script to set up web server.
@@ -280,7 +280,7 @@ Tear down everything?
 
 
 ## 2.4. Note
-1. It is not necessary that you run the clean process after setting up. You can always re-running this script with skipping the set up process (by choosing *no*) to reach the clean up process.
+1. It is not necessary that you run the clean process after setting up. You can always re-running this script with skipping the setup process (by choosing *no*) to reach the cleanup process.
 2. After setting up, you can easily scale up and down the Hadoop cluster by re-running this script with skipping **WEB and database** process and inputting your desired number of datanodes. The script will automatically **delete** the old cluster and build a new one. **NOTE: Please BACKUP your cluster BEFORE you scale up and down, the script WILL NOT keep your data**
 
 # 3. Design
@@ -289,7 +289,7 @@ Tear down everything?
 
 Front end consist of two parts, web and middleware.
 
-The shell script `web.bash` will automatically install Nginx, Python3.7 and Python modules. Then it will start up web server and middleware.
+The shell script `web.bash` will automatically install Nginx, Python3.7 and Python modules. Then it will start up a web server and middleware.
 
 ### 3.1.1. Web
 
@@ -302,13 +302,13 @@ There is also a middleware between our web application and databases as it is no
 
 ## 3.2. Database
 
-The backend of the production system consists of two standalone aws ec2 instances to host relational database and non-relational database separately. Database setup is accomplished with Bash, Mysql and Mongo scripts.
+The backend of the production system consists of two standalone AWS ec2 instances to host relational database and non-relational database separately. Database setup is accomplished with Bash, Mysql and Mongo scripts.
 
 ### 3.2.1. MySQL
 
-- Relational Database (hosted on standalone aws ec2 instance)
-- Mysql is chosen to store relational data, and the automation is accomplished through the a combination of Mysql setup bash script and SQL commands scripts.
-- Bash script, which is `mysql.bash`, performs the following functionalities: 
+- Relational Database (hosted on standalone AWS ec2 instance)
+- Mysql is chosen to store relational data, and the automation is accomplished through a combination of Mysql setup bash script and SQL commands scripts.
+- Bash script, which is `mysql.bash`, performs the following functionalities:
   1. Install Mysql database
   2. Create root user and test user with corresponding passwords
   3. Configure Mysql network to allow remote connection
@@ -322,7 +322,7 @@ The backend of the production system consists of two standalone aws ec2 instance
 
 ## 3.3. MongoDB
 
-- Mongodb (hosted on standalone aws ec2 instance)
+- Mongodb (hosted on standalone AWS ec2 instance)
 - Mongodb is chosen to store non-relational data (kindle book metadata), and the automation is accomplished through a combination of Mongodb setup bash script and mongo commands
 - Bash script, which is `mongo.bash`, performs the following functionalities: 
   1. Install Mongodb database
@@ -332,7 +332,7 @@ The backend of the production system consists of two standalone aws ec2 instance
 
 - Mongo commands script which is `mongo_commands.js`, performs the following functionalities:
   1. Create admin user against admin database with secure password
-  2. Create kindle_metadate database and collection to store metadata with assigned test_user and password to it
+  2. Create kindle_metadata database and collection to store metadata with assigned test_user and password to it
   3. Create web_log database and collection to store web logs with assigned test_user and password to it
 
 ## 3.4. Data Processing
@@ -356,7 +356,7 @@ For now, the automation script can scale up and down the cluster by **destroying
 ### 3.5.3. Data Ingestion 
 - From Mongodb to HDFS
 
-    Connect the name node to the mongodb server by mongoexport, import kindle_metadata.json to localhost and put the file into HDFS.
+    Connect the name node to the MongoDB server by mongoexport, import kindle_metadata.json to localhost and put the file into HDFS.
 
 - From RDBMs to HDFS
 
@@ -386,7 +386,7 @@ For now, the automation script can scale up and down the cluster by **destroying
 - Read the `kindle_reviews.csv` as `Pyspark.sql.Dataframe`.
 - Preprocessing `kindle_reviews.csv` including filter the rows without any review text and selecting columns `asin` and `reviewText`.
 - Apply Tokenizer to separate each word for each review, store the result in the column `Words`.
-- Apply Countvectorizer to fit and transform the new table to get the number of occurence of each word, store the result in the column `raw_features`.
+- Apply Countvectorizer to fit and transform the new table to get the number of occurrence of each word, store the result in the column `raw_features`.
 - Apply build-in library IDF to get the tf-idf value, store the result in the column `tfidf_value`.
 - Reorganize the output Dataframe in map-reduce fashion, apply Map function to map the word in vocabulary to its corresponding TF-IDF value.
 
@@ -403,8 +403,8 @@ Setup cloud infrastructures using python script `g15automation.py`. The script l
 - Initialize aws session,  ec2 client and ec2 resource.
 - Create ssh key for ec2 instances.
 - Create and configure security groups.
-- Create three ec2 instances for hosting web server, mysql database, mongodb database separately.
-- Remote execute commands in the three newly created instances to setup web server, mysql database and mongodb database.
+- Create three ec2 instances for hosting web server, MySQL database, MongoDB database separately.
+- Remote execute commands in the three newly created instances to setup web server, MySQL database and MongoDB database.
 
 
 ### 3.6.2. Analytics system
@@ -413,9 +413,9 @@ Setup cloud infrastructures using python script `g15automation.py`. The script l
 - Create ssh key for ec2 instances.
 - Create and configure security groups.
 - Create four ec2 instances for one namenode and three datanodes.
-- Setting up a multi node cluster in hadoop 3.3.0 in a distributed Hadoop environment.
-- Setting up Sqoop and MongoDB at namenode to load data from the production system (MySQL and MongoDB), and store in the hadoop distributed file system.
+- Setting up a multi-node cluster in hadoop 3.3.0 in a distributed Hadoop environment.
+- Setting up Sqoop and MongoDB at namenode to load data from the production system (MySQL and MongoDB), and store it in the hadoop distributed file system.
 - Setting up Apache Spark framework for analyzing metadata and reviews in cluster computing environments.
-- Initialising spark session and Call `tfidf.py` and `pearson_correlation.py` to calculate TF-IDF on the review text and Pearson Correlation between price and average review length. We store TF-IDF value in several CSV files in `reviews_tfidf_dir` directory.
+- Initializing spark session and Call `tfidf.py` and `pearson_correlation.py` to calculate TF-IDF on the review text and Pearson Correlation between price and average review length. We store TF-IDF value in several CSV files in `reviews_tfidf_dir` directory.
 - Stop spark session
 
