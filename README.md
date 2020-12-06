@@ -154,7 +154,7 @@ There are some template files and some values such as IP and hostname need to be
 - `README.md`
 - `.gitignore`
 
-</details><br>
+</details>
 
 
 ## 1.3. Web application features
@@ -187,7 +187,6 @@ Users can sort reviews by time at the pop-up view details window. They can click
 ![Add a book](assets/image12.png)
 
 </details>
-<br>
 
 ## 1.4. Automation script features
 
@@ -276,7 +275,6 @@ Tear down everything?
 - No, skip this process.
 </details>
 
-<br>
 
 ## 2.4. Note
 1. It is not necessary that you run the clean process after setting up. You can always re-running this script with skipping the set up process (by choosing *no*) to reach the clean up process.
@@ -294,7 +292,7 @@ The shell script `web.bash` will automatically install Nginx, Python3.7 and Pyth
 
 We use a progressive framework Vue for building Web user interfaces. It is designed from the ground up to be incrementally adoptable and easy to pick up and integrate with other libraries or existing projects.The Web Application files are stored in the frontend_template folder on github.
 
-[Vue.js](https://vuejs.org/)
+[Vue.js project website](https://vuejs.org/)
 
 ### 3.1.2. Middleware
 There is also a middleware between our web application and databases as it is not wise for the front end to communicate with databases directly. For this middleware, we use a Python module `FastApi` as a server to get requests and return responses. This `FastApi` also writes web logs to MongoDB server. We also use Python module `pymongo` and `SQLAlchemy` to perform queries on the database. Finally, we use **Nginx** to serve the front end HTML, CSS and JS code and make a reverse proxy to our middleware.
@@ -372,6 +370,7 @@ For now, the automation script can scale up and down the cluster by **destroying
    - Assume x, y represents the price of the book and the average review length respectively, pearson correlation is calculated as
         
         <img src="https://latex.codecogs.com/svg.latex?\dfrac{n\sum{xy}-\sum{x}\sum{y}}{\sqrt{n\sum{x^2}-(\sum{x})^2}*n*\sqrt{n\sum{y^2}-(\sum{y})^2}}" />
+        
         where n is the total number of books.
     - We then calculate each term in map-reduce fashion. For example, we apply Map function to calculate <img src="https://latex.codecogs.com/svg.latex?x_iy_i" /> and apply the Reduce function to sum them up to get <img src="https://latex.codecogs.com/svg.latex?xy" />.
     - **Result**
